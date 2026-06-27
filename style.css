@@ -410,7 +410,6 @@ input, textarea { font-family: var(--font-main); outline: none; }
 }
 
 /* ── PAGE CONTENT ──────────────────────────────────────────── */
-<style>
 .site-nav {
   display: flex;
   align-items: center;
@@ -437,8 +436,7 @@ input, textarea { font-family: var(--font-main); outline: none; }
   font-weight: 600;
 }
 
-.nav-actions .btn:hover { opacity: 0.9; }
-</style>
+.nav-actions .btn:hover { opacity: 0.9; 
 
 
 
