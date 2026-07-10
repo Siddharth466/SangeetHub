@@ -153,17 +153,7 @@ const DOM = {
   fsProgressThumb: $('fsProgressThumb'),
   fsVinylWrap: $('fsVinylWrap'),
   fsVolume: $('fsVolume'),
-  // auth
-  authModalClose: $('authModalClose'),
-  loginForm: $('loginForm'),
-  registerForm: $('registerForm'),
-  loginEmail: $('loginEmail'),
-  loginPassword: $('loginPassword'),
-  loginSubmitBtn: $('loginSubmitBtn'),
-  regName: $('regName'),
-  regEmail: $('regEmail'),
-  regPassword: $('regPassword'),
-  registerSubmitBtn: $('registerSubmitBtn'),
+  
   // playlist
   playlistModal: $('playlistModal'),
   playlistModalClose: $('playlistModalClose'),
