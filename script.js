@@ -16,7 +16,7 @@ const SONGS = [
   { id: 5, title: 'Guilty', artist: 'Karan Aunjla,Inder Chahal', album: 'Collaborations', genre: 'punjabi', mood: 'chill', src: 'Songs/song5.mp3', cover: 'Images/c5.png', duration: '4:30', plays: 987, year: 2021 },
   { id: 6, title: 'Not Guilty', artist: 'Dhanda Nyoliwala', album: 'Kohram', genre: 'hindi', mood: 'cold', src: 'Songs/song4.mp3', cover: 'Images/c4.png', duration: '3:04', plays: 2055, year: 2026 },
   { id: 7, title: 'Kohram Intro', artist: 'Dhanda Nyoliwala', album: 'Kohram', genre: 'haryanvi', mood: 'party', src: 'Songs/song7.mp3', cover: 'Images/c7.png', duration: '3:11', plays: 2785, year: 2025 },
-    { id: 8, title: 'Pagal Banawe', artist: 'Bali Sharma', album: 'Sinta', genre: 'haryanvi', mood: 'party', src: 'Songs/song8.mp3', cover: 'Images/c8.png', duration: '3:39', plays: 2785, year: 2024 },
+    { id: 8, title: 'Pagal Banawe', artist: 'Bali Sharma', album: 'Sinta', genre: 'haryanvi', mood: 'party', src: 'Songs/Song8.mp3', cover: 'Images/c8.png', duration: '3:39', plays: 2785, year: 2024 },
 ];
 
 const ARTISTS = [
