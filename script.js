@@ -7,7 +7,7 @@
 // ═══════════════════════════════════════════════════════════
 // DATA STORE
 // ═══════════════════════════════════════════════════════════
-
+      
 const SONGS = [
   { id: 1, title: 'The Last Letter', artist: 'Maan Panu', album: 'Emotions', genre: 'Hindi', mood: 'sad', src: 'Songs/song1.mp3', cover: 'Images/c1.png', duration: '3:42', plays: 1204, year: 2023 },
   { id: 2, title: 'Moves', artist: 'Shubh', album: 'Moves EP', genre: 'punjabi', mood: 'energetic', src: 'Songs/song2.mp3', cover: 'Images/c2.png', duration: '3:08', plays: 3871, year: 2023 },
@@ -16,8 +16,12 @@ const SONGS = [
   { id: 5, title: 'Guilty', artist: 'Karan Aunjla,Inder Chahal', album: 'Collaborations', genre: 'punjabi', mood: 'chill', src: 'Songs/song5.mp3', cover: 'Images/c5.png', duration: '4:30', plays: 987, year: 2021 },
   { id: 6, title: 'Not Guilty', artist: 'Dhanda Nyoliwala', album: 'Kohram', genre: 'hindi', mood: 'cold', src: 'Songs/song4.mp3', cover: 'Images/c4.png', duration: '3:04', plays: 2055, year: 2026 },
   { id: 7, title: 'Kohram Intro', artist: 'Dhanda Nyoliwala', album: 'Kohram', genre: 'haryanvi', mood: 'party', src: 'Songs/song7.mp3', cover: 'Images/c7.png', duration: '3:11', plays: 2785, year: 2025 },
-    { id: 8, title: 'Pagal Banawe', artist: 'Bali Sharma', album: 'Sinta', genre: 'haryanvi', mood: 'party', src: 'Songs/Song8.mp3', cover: 'Images/c8.png', duration: '3:39', plays: 2785, year: 2024 },
-];
+  { id: 8, title: 'Pagal Banawe', artist: 'Bali Sharma', album: 'Sinta', genre: 'haryanvi', mood: 'party', src: 'Songs/Song8.mp3', cover: 'Images/c8.png', duration: '3:39', plays: 2785, year: 2024 },
+  { id: 10, title: 'Tough', artist: 'Krish Rao', album: 'Tough', genre: 'haryanvi', mood: 'energetic', src: 'Songs/song10.mp3', cover: 'Images/c10.png', duration: '2:39', plays: 1200, year: 2026 },
+  { id: 11, title: 'Do Numbari', artist: 'Dhanda Nyoliwala', album: 'Mirzapur The Movie', genre: 'haryanvi', mood: 'aggressive', src: 'Songs/song11.mp3', cover: 'Images/c11.png', duration: '2:43', plays: 3450, year: 2026 },
+  { id: 12, title: '9:45', artist: 'Prabh Singh', album: '9:45', genre: 'punjabi', mood: 'romantic', src: 'Songs/song12.mp3', cover: 'Images/c12.png', duration: '1:57', plays: 8900, year: 2023 },
+  { id: 13, title: 'Godhe 3', artist: 'Masoom Sharma', album: 'Godhe 3', genre: 'haryanvi', mood: 'energetic', src: 'Songs/song13.mp3', cover: 'Images/c13.png', duration: '2:50', plays: 2100, year: 2025 },
+  { id: 14, title: 'Main Vohe', artist: 'Masoom Sharma', album: 'Main Vohe', genre: 'haryanvi', mood: 'intense', src: 'Songs/song14.mp3', cover: 'Images/c14.png', duration: '3:10', plays: 1540, year: 2026 }];
 
 const ARTISTS = [
   { id: 1, name: 'Shubh', emoji: '🎤', followers: '4.2M', verified: true, songs: [2, 6], color: 'linear-gradient(135deg,#7C3AED,#5B21B6)' },
