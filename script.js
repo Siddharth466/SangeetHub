@@ -12,7 +12,7 @@ const SONGS = [
   { id: 1, title: 'The Last Letter', artist: 'Maan Panu', album: 'Emotions', genre: 'Hindi', mood: 'sad', src: 'Songs/song1.mp3', cover: 'Images/c1.png', duration: '3:42', plays: 1204, year: 2023 },
   { id: 2, title: 'Moves', artist: 'Shubh', album: 'Moves EP', genre: 'punjabi', mood: 'energetic', src: 'Songs/song2.mp3', cover: 'Images/c2.png', duration: '3:08', plays: 3871, year: 2023 },
   { id: 3, title: 'Tension', artist: 'Dhanda Nyoliwala', album: 'Kohram', genre: 'haryanvi', mood: 'party', src: 'Songs/song3.mp3', cover: 'Images/c3.png', duration: '3:28', plays: 2653, year: 2022 },
-  { id: 4, title: 'Haryana To Punjab', artist: 'KakaXJerry', album: 'Collaborations', genre: 'punjabi', mood: 'party', src: 'Songs/song6.mp3', cover: 'Images/c6.png', duration: '4:05', plays: 1889, year: 2023 },
+  { id: 4, title: 'Haryana To Punjab', artist: 'Kaka', album: 'Collaborations', genre: 'punjabi', mood: 'party', src: 'Songs/song6.mp3', cover: 'Images/c6.png', duration: '4:05', plays: 1889, year: 2023 },
   { id: 5, title: 'Guilty', artist: 'Karan Aunjla,Inder Chahal', album: 'Collaborations', genre: 'punjabi', mood: 'chill', src: 'Songs/song5.mp3', cover: 'Images/c5.png', duration: '4:30', plays: 987, year: 2021 },
   { id: 6, title: 'Not Guilty', artist: 'Dhanda Nyoliwala', album: 'Kohram', genre: 'hindi', mood: 'cold', src: 'Songs/song4.mp3', cover: 'Images/c4.png', duration: '3:04', plays: 2055, year: 2026 },
   { id: 7, title: 'Kohram Intro', artist: 'Dhanda Nyoliwala', album: 'Kohram', genre: 'haryanvi', mood: 'party', src: 'Songs/song7.mp3', cover: 'Images/c7.png', duration: '3:11', plays: 2785, year: 2025 },
@@ -24,12 +24,12 @@ const SONGS = [
   { id: 14, title: 'Main Vohe', artist: 'Masoom Sharma', album: 'Main Vohe', genre: 'haryanvi', mood: 'intense', src: 'Songs/song14.mp3', cover: 'Images/c14.png', duration: '3:10', plays: 1540, year: 2026 }];
 
 const ARTISTS = [
-  { id: 1, name: 'Shubh', emoji: '🎤', followers: '4.2M', verified: true, songs: [2, 6], color: 'linear-gradient(135deg,#7C3AED,#5B21B6)' },
+  { id: 1, name: 'Shubh', emoji: '🎤', followers: '4.2M', verified: true, songs: [2], color: 'linear-gradient(135deg,#7C3AED,#5B21B6)' },
   { id: 2, name: 'Maan Panu', emoji: '🎵', followers: '1.8M', verified: true, songs: [1], color: 'linear-gradient(135deg,#06B6D4,#0891B2)' },
-  { id: 3, name: 'Dhanda Nyoliwala', emoji: '🔥', followers: '2.3M', verified: true, songs: [3], color: 'linear-gradient(135deg,#10B981,#059669)' },
-  { id: 4, name: 'KakaXJerry', emoji: '🎶', followers: '3.1M', verified: false, songs: [4], color: 'linear-gradient(135deg,#F59E0B,#D97706)' },
+  { id: 3, name: 'Dhanda Nyoliwala', emoji: '🔥', followers: '2.3M', verified: true, songs: [3,4,7,11], color: 'linear-gradient(135deg,#10B981,#059669)' },
+  { id: 4, name: 'Kaka', emoji: '🎶', followers: '3.1M', verified: false, songs: [4], color: 'linear-gradient(135deg,#F59E0B,#D97706)' },
   { id: 5, name: 'Karan Aunjla', emoji: '🌟', followers: '5.6M', verified: true, songs: [5], color: 'linear-gradient(135deg,#EF4444,#DC2626)' },
-  { id: 6, name: 'Masoom Sharma', emoji: '🫀', followers: '2.9M', verified: true, songs: [6], color: 'linear-gradient(135deg,#8B5CF6,#7C3AED)' },
+  { id: 6, name: 'Masoom Sharma', emoji: '🫀', followers: '2.9M', verified: true, songs: [13,14], color: 'linear-gradient(135deg,#8B5CF6,#7C3AED)' },
 ];
 
 const GENRES = [
