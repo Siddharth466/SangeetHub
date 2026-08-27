@@ -29,7 +29,7 @@ const ARTISTS = [
   { id: 3, name: 'Dhanda Nyoliwala', emoji: '🔥', followers: '2.3M', verified: true, songs: [3], color: 'linear-gradient(135deg,#10B981,#059669)' },
   { id: 4, name: 'KakaXJerry', emoji: '🎶', followers: '3.1M', verified: false, songs: [4], color: 'linear-gradient(135deg,#F59E0B,#D97706)' },
   { id: 5, name: 'Karan Aunjla', emoji: '🌟', followers: '5.6M', verified: true, songs: [5], color: 'linear-gradient(135deg,#EF4444,#DC2626)' },
-  { id: 6, name: 'The Local Train', emoji: '🚂', followers: '2.9M', verified: true, songs: [6], color: 'linear-gradient(135deg,#8B5CF6,#7C3AED)' },
+  { id: 6, name: 'Masoom Sharma', emoji: '🫀', followers: '2.9M', verified: true, songs: [6], color: 'linear-gradient(135deg,#8B5CF6,#7C3AED)' },
 ];
 
 const GENRES = [
