@@ -20,8 +20,8 @@ const SONGS = [
   { id: 10, title: 'Tough', artist: 'Krish Rao', album: 'Tough', genre: 'haryanvi', mood: 'energetic', src: 'Songs/song10.mp3', cover: 'Images/c10.png', duration: '2:39', plays: 1200, year: 2026 },
   { id: 11, title: 'Do Numbari', artist: 'Dhanda Nyoliwala', album: 'Mirzapur The Movie', genre: 'haryanvi', mood: 'aggressive', src: 'Songs/song11.mp3', cover: 'Images/c11.png', duration: '2:43', plays: 3450, year: 2026 },
   { id: 12, title: '9:45', artist: 'Prabh Singh', album: '9:45', genre: 'punjabi', mood: 'romantic', src: 'Songs/song12.mp3', cover: 'Images/c12.png', duration: '1:57', plays: 8900, year: 2023 },
-  { id: 13, title: 'Godhe 3', artist: 'Masoom Sharma', album: 'Godhe 3', genre: 'haryanvi', mood: 'energetic', src: 'Songs/song13.mp3', cover: 'Images/c13.png', duration: '2:50', plays: 2100, year: 2025 },
-  { id: 14, title: 'Main Vohe', artist: 'Masoom Sharma', album: 'Main Vohe', genre: 'haryanvi', mood: 'intense', src: 'Songs/song14.mp3', cover: 'Images/c14.png', duration: '3:10', plays: 1540, year: 2026 }];
+  { id: 13, title: 'Godhe 3', artist: 'Masoom Sharma', album: 'Godhe 3', genre: 'haryanvi', mood: 'energetic', src: 'Songs/song14.mp3', cover: 'Images/c14.png', duration: '2:50', plays: 2100, year: 2025 },
+  { id: 14, title: 'Main Vohe', artist: 'Masoom Sharma', album: 'Main Vohe', genre: 'haryanvi', mood: 'intense', src: 'Songs/song13.mp3', cover: 'Images/c13.png', duration: '3:10', plays: 1540, year: 2026 }];
 
 const ARTISTS = [
   { id: 1, name: 'Shubh', emoji: '🎤', followers: '4.2M', verified: true, songs: [2], color: 'linear-gradient(135deg,#7C3AED,#5B21B6)' },
