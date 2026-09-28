@@ -3657,11 +3657,16 @@ window.navigateTo = navigateTo;
     /*
      * YouTube playlist settings
      */
-    bind(
-      'youtubePlaylistSettingsBtn',
-      'click',
-      openYouTubePlaylistModal
-    );
+    const youtubeSettingsButton =
+      getElement('youtubePlaylistSettingsBtn');
+
+    if (youtubeSettingsButton) {
+      youtubeSettingsButton.onclick = function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        openYouTubePlaylistModal();
+      };
+    }
 
 
     bind(
