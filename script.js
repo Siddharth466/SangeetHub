@@ -1845,3 +1845,2165 @@ window.showToast = showToast;
 window.openPlaylistModal = openPlaylistModal;
 window.logoutUser = logoutUser;
 window.navigateTo = navigateTo;
+
+/* ============================================================
+   SANGEETHUB — YOUTUBE PLAYLIST PLAYER
+   ============================================================
+
+   This layer replaces the local MP3 playback engine with
+   YouTube's official IFrame Player API while keeping the
+   existing SangeetHub player UI.
+
+   Features:
+   - YouTube / YouTube Music playlist support
+   - Custom play/pause controls
+   - Next / previous
+   - Shuffle
+   - Repeat
+   - Volume
+   - Progress bar
+   - Queue
+   - Current song title
+   - Artist/channel
+   - YouTube thumbnail
+   - Playlist saved in localStorage
+   - Playlist URL or playlist ID accepted
+
+   ============================================================ */
+
+(function () {
+  'use strict';
+
+  /* ==========================================================
+     CONFIGURATION
+     ========================================================== */
+
+  const YT_PLAYLIST_STORAGE_KEY =
+    'sangeethub_youtube_playlist_id';
+
+  /*
+   * Put your default playlist ID here if you want the website
+   * to start with one automatically.
+   *
+   * Example:
+   *
+   * const DEFAULT_YOUTUBE_PLAYLIST_ID =
+   *   'PLxxxxxxxxxxxxxxxx';
+   *
+   * Leave it empty if you want users to enter their own playlist.
+   */
+  const DEFAULT_YOUTUBE_PLAYLIST_ID = '';
+
+  let youtubePlayer = null;
+
+  let youtubeReady = false;
+
+  let youtubePlayerReady = false;
+
+  let youtubePlaylist = [];
+
+  let youtubeCurrentIndex = 0;
+
+  let youtubeShuffle = false;
+
+  let youtubeRepeat = false;
+
+  let youtubeLastVideoId = null;
+
+  let youtubeProgressTimer = null;
+
+  let youtubeVolume = 80;
+
+  let youtubeInitialized = false;
+
+
+  /* ==========================================================
+     DOM HELPERS
+     ========================================================== */
+
+  const $ = (id) => document.getElementById(id);
+
+  function getElement(id) {
+    return document.getElementById(id);
+  }
+
+
+  /* ==========================================================
+     PLAYLIST ID EXTRACTION
+     ========================================================== */
+
+  function extractYouTubePlaylistId(value) {
+    if (!value) {
+      return null;
+    }
+
+    value = String(value).trim();
+
+    /*
+     * Already a playlist ID
+     */
+    if (
+      !value.includes('/') &&
+      !value.includes('?') &&
+      !value.includes('&') &&
+      !value.includes('=')
+    ) {
+      return value;
+    }
+
+    try {
+      const url = new URL(value);
+
+      const listId = url.searchParams.get('list');
+
+      if (listId) {
+        return listId;
+      }
+    } catch (error) {
+      console.warn(
+        '[SangeetHub] Invalid YouTube URL:',
+        error
+      );
+    }
+
+    /*
+     * Fallback for URLs where URL() did not parse correctly.
+     */
+    const match = value.match(/[?&]list=([^&]+)/);
+
+    if (match && match[1]) {
+      return match[1];
+    }
+
+    return null;
+  }
+
+
+  /* ==========================================================
+     LOCAL STORAGE
+     ========================================================== */
+
+  function getSavedPlaylistId() {
+    try {
+      const saved = localStorage.getItem(
+        YT_PLAYLIST_STORAGE_KEY
+      );
+
+      if (saved) {
+        return saved;
+      }
+    } catch (error) {
+      console.warn(
+        '[SangeetHub] localStorage unavailable.',
+        error
+      );
+    }
+
+    return DEFAULT_YOUTUBE_PLAYLIST_ID || '';
+  }
+
+
+  function savePlaylistId(id) {
+    try {
+      localStorage.setItem(
+        YT_PLAYLIST_STORAGE_KEY,
+        id
+      );
+    } catch (error) {
+      console.warn(
+        '[SangeetHub] Could not save playlist.',
+        error
+      );
+    }
+  }
+
+
+  function clearSavedPlaylist() {
+    try {
+      localStorage.removeItem(
+        YT_PLAYLIST_STORAGE_KEY
+      );
+    } catch (error) {
+      console.warn(
+        '[SangeetHub] Could not clear playlist.',
+        error
+      );
+    }
+  }
+
+
+  /* ==========================================================
+     TOAST
+     ========================================================== */
+
+  function ytToast(message) {
+    /*
+     * Use existing SangeetHub toast if available.
+     */
+    if (
+      typeof window.showToast === 'function'
+    ) {
+      window.showToast(message);
+      return;
+    }
+
+    const container =
+      getElement('toastContainer');
+
+    if (!container) {
+      console.log('[SangeetHub]', message);
+      return;
+    }
+
+    const toast =
+      document.createElement('div');
+
+    toast.className = 'toast';
+
+    toast.innerHTML = `
+      <i class="fab fa-youtube"></i>
+      <span>${escapeHtml(message)}</span>
+    `;
+
+    container.appendChild(toast);
+
+    setTimeout(() => {
+      toast.classList.add('show');
+    }, 20);
+
+    setTimeout(() => {
+      toast.classList.remove('show');
+
+      setTimeout(() => {
+        toast.remove();
+      }, 300);
+    }, 3000);
+  }
+
+
+  function escapeHtml(value) {
+    return String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+
+  /* ==========================================================
+     YOUTUBE API READY
+     ========================================================== */
+
+  window.onYouTubeIframeAPIReady = function () {
+    console.log(
+      '[SangeetHub] YouTube IFrame API ready.'
+    );
+
+    youtubeReady = true;
+
+    initializeYouTubePlayer();
+  };
+
+
+  /* ==========================================================
+     INITIALIZE YOUTUBE PLAYER
+     ========================================================== */
+
+  function initializeYouTubePlayer() {
+    if (youtubeInitialized) {
+      return;
+    }
+
+    if (!youtubeReady) {
+      return;
+    }
+
+    const host =
+      getElement('youtubePlayerHost');
+
+    if (!host) {
+      console.error(
+        '[SangeetHub] youtubePlayerHost missing.'
+      );
+
+      return;
+    }
+
+    youtubeInitialized = true;
+
+    youtubePlayer = new YT.Player(
+      'youtubePlayerHost',
+      {
+        width: '1',
+        height: '1',
+
+        playerVars: {
+          autoplay: 0,
+          controls: 0,
+          disablekb: 1,
+          fs: 0,
+          playsinline: 1,
+          rel: 0,
+          modestbranding: 1
+        },
+
+        events: {
+          onReady:
+            onYouTubePlayerReady,
+
+          onStateChange:
+            onYouTubeStateChange,
+
+          onError:
+            onYouTubeError
+        }
+      }
+    );
+  }
+
+
+  /* ==========================================================
+     PLAYER READY
+     ========================================================== */
+
+  function onYouTubePlayerReady(event) {
+    youtubePlayerReady = true;
+
+    youtubePlayer =
+      event.target;
+
+    youtubePlayer.setVolume(
+      youtubeVolume
+    );
+
+    console.log(
+      '[SangeetHub] YouTube player ready.'
+    );
+
+    const savedPlaylist =
+      getSavedPlaylistId();
+
+    if (savedPlaylist) {
+      loadYouTubePlaylist(
+        savedPlaylist,
+        false
+      );
+    }
+
+    startYouTubeProgressTimer();
+  }
+
+
+  /* ==========================================================
+     PLAYER STATE
+     ========================================================== */
+
+  function onYouTubeStateChange(event) {
+    if (!window.YT) {
+      return;
+    }
+
+    switch (event.data) {
+
+      case YT.PlayerState.PLAYING:
+
+        updatePlayButton(true);
+
+        updateVisualizer(true);
+
+        updateCurrentSongMetadata();
+
+        break;
+
+
+      case YT.PlayerState.PAUSED:
+
+        updatePlayButton(false);
+
+        updateVisualizer(false);
+
+        break;
+
+
+      case YT.PlayerState.ENDED:
+
+        handleYouTubeEnded();
+
+        break;
+
+
+      case YT.PlayerState.BUFFERING:
+
+        updatePlayButton(true);
+
+        break;
+
+
+      case YT.PlayerState.CUED:
+
+        updateCurrentSongMetadata();
+
+        break;
+    }
+
+    syncYouTubeQueue();
+  }
+
+
+  /* ==========================================================
+     YOUTUBE ERRORS
+     ========================================================== */
+
+  function onYouTubeError(event) {
+    console.warn(
+      '[SangeetHub] YouTube error:',
+      event.data
+    );
+
+    let message =
+      'Unable to play this YouTube video.';
+
+    switch (event.data) {
+
+      case 2:
+        message =
+          'Invalid YouTube video request.';
+        break;
+
+      case 5:
+        message =
+          'HTML5 playback error.';
+        break;
+
+      case 100:
+        message =
+          'This YouTube video is unavailable.';
+        break;
+
+      case 101:
+      case 150:
+        message =
+          'This video cannot be played in an embedded player.';
+        break;
+    }
+
+    ytToast(message);
+  }
+
+
+  /* ==========================================================
+     LOAD PLAYLIST
+     ========================================================== */
+
+  function loadYouTubePlaylist(
+    playlistValue,
+    showToast = true
+  ) {
+    const playlistId =
+      extractYouTubePlaylistId(
+        playlistValue
+      );
+
+    if (!playlistId) {
+      ytToast(
+        'Please enter a valid YouTube playlist URL or ID.'
+      );
+
+      return false;
+    }
+
+    if (
+      !youtubePlayer ||
+      !youtubePlayerReady
+    ) {
+      ytToast(
+        'YouTube player is still loading.'
+      );
+
+      return false;
+    }
+
+    savePlaylistId(
+      playlistId
+    );
+
+    try {
+
+      youtubePlayer.loadPlaylist({
+        listType: 'playlist',
+        list: playlistId,
+        index: 0,
+        startSeconds: 0
+      });
+
+      youtubeCurrentIndex = 0;
+
+      youtubePlaylist = [];
+
+      if (showToast) {
+        ytToast(
+          'YouTube playlist connected.'
+        );
+      }
+
+      updatePlaylistStatus(
+        'Playlist connected successfully.'
+      );
+
+      setTimeout(() => {
+        syncYouTubeQueue();
+      }, 1500);
+
+      return true;
+
+    } catch (error) {
+
+      console.error(
+        '[SangeetHub] Playlist loading failed:',
+        error
+      );
+
+      ytToast(
+        'Could not load the YouTube playlist.'
+      );
+
+      return false;
+    }
+  }
+
+
+  /* ==========================================================
+     SYNC PLAYLIST
+     ========================================================== */
+
+  function syncYouTubeQueue() {
+    if (
+      !youtubePlayer ||
+      !youtubePlayerReady
+    ) {
+      return;
+    }
+
+    try {
+
+      const playlist =
+        youtubePlayer.getPlaylist();
+
+      if (
+        Array.isArray(playlist)
+      ) {
+        youtubePlaylist =
+          playlist.map(
+            (videoId, index) => ({
+              id: videoId,
+              index: index
+            })
+          );
+      }
+
+      const current =
+        youtubePlayer.getPlaylistIndex();
+
+      if (
+        Number.isInteger(current) &&
+        current >= 0
+      ) {
+        youtubeCurrentIndex =
+          current;
+      }
+
+      renderYouTubeQueue();
+
+    } catch (error) {
+
+      console.warn(
+        '[SangeetHub] Queue sync failed:',
+        error
+      );
+    }
+  }
+
+
+  /* ==========================================================
+     CURRENT VIDEO
+     ========================================================== */
+
+  function getCurrentVideoId() {
+    if (!youtubePlayer) {
+      return null;
+    }
+
+    try {
+      return youtubePlayer.getVideoData()
+        .video_id || null;
+    } catch {
+      return null;
+    }
+  }
+
+
+  function getCurrentVideoData() {
+    if (!youtubePlayer) {
+      return null;
+    }
+
+    try {
+      return youtubePlayer.getVideoData();
+    } catch {
+      return null;
+    }
+  }
+
+
+  /* ==========================================================
+     UPDATE SONG METADATA
+     ========================================================== */
+
+  function updateCurrentSongMetadata() {
+    if (!youtubePlayer) {
+      return;
+    }
+
+    const data =
+      getCurrentVideoData();
+
+    if (!data) {
+      return;
+    }
+
+    const videoId =
+      data.video_id || '';
+
+    const title =
+      data.title ||
+      'YouTube Music';
+
+    const author =
+      data.author ||
+      'YouTube';
+
+    /*
+     * Prevent unnecessary updates.
+     */
+    if (
+      youtubeLastVideoId === videoId
+    ) {
+      updateProgress();
+      return;
+    }
+
+    youtubeLastVideoId =
+      videoId;
+
+    const thumbnail =
+      videoId
+        ? `https://i.ytimg.com/vi/${encodeURIComponent(videoId)}/hqdefault.jpg`
+        : 'Images/cover1.jpg';
+
+    setPlayerText(
+      'playerTitle',
+      title
+    );
+
+    setPlayerText(
+      'playerArtist',
+      author
+    );
+
+    setPlayerImage(
+      'playerCover',
+      thumbnail
+    );
+
+    setPlayerText(
+      'fsTitle',
+      title
+    );
+
+    setPlayerText(
+      'fsArtist',
+      author
+    );
+
+    setPlayerImage(
+      'fsCover',
+      thumbnail
+    );
+
+    setPlayerImage(
+      'vinylCoverImg',
+      thumbnail
+    );
+
+    setBackgroundImage(
+      'fsBg',
+      thumbnail
+    );
+
+    updateQueueCurrent(
+      title,
+      author,
+      thumbnail
+    );
+
+    updatePlayHistory(
+      videoId,
+      title,
+      author
+    );
+  }
+
+
+  /* ==========================================================
+     SAFE DOM UPDATES
+     ========================================================== */
+
+  function setPlayerText(
+    id,
+    value
+  ) {
+    const element =
+      getElement(id);
+
+    if (element) {
+      element.textContent =
+        value || '';
+    }
+  }
+
+
+  function setPlayerImage(
+    id,
+    src
+  ) {
+    const element =
+      getElement(id);
+
+    if (
+      element &&
+      src
+    ) {
+      element.src = src;
+    }
+  }
+
+
+  function setBackgroundImage(
+    id,
+    src
+  ) {
+    const element =
+      getElement(id);
+
+    if (
+      element &&
+      src
+    ) {
+      element.style.backgroundImage =
+        `url("${src}")`;
+    }
+  }
+
+
+  /* ==========================================================
+     PLAY / PAUSE
+     ========================================================== */
+
+  function youtubePlayPause() {
+    if (
+      !youtubePlayer ||
+      !youtubePlayerReady
+    ) {
+      ytToast(
+        'YouTube player is not ready yet.'
+      );
+
+      return;
+    }
+
+    const state =
+      youtubePlayer.getPlayerState();
+
+    if (
+      state === YT.PlayerState.PLAYING
+    ) {
+      youtubePlayer.pauseVideo();
+    } else {
+      youtubePlayer.playVideo();
+    }
+  }
+
+
+  /* ==========================================================
+     NEXT
+     ========================================================== */
+
+  function youtubeNext() {
+    if (
+      !youtubePlayer ||
+      !youtubePlayerReady
+    ) {
+      return;
+    }
+
+    if (
+      youtubeShuffle &&
+      youtubePlaylist.length > 1
+    ) {
+      const possible =
+        youtubePlaylist
+          .map(
+            (_, index) => index
+          )
+          .filter(
+            index =>
+              index !==
+              youtubeCurrentIndex
+          );
+
+      const random =
+        possible[
+          Math.floor(
+            Math.random() *
+            possible.length
+          )
+        ];
+
+      youtubePlayer.playVideoAt(
+        random
+      );
+
+      return;
+    }
+
+    youtubePlayer.nextVideo();
+  }
+
+
+  /* ==========================================================
+     PREVIOUS
+     ========================================================== */
+
+  function youtubePrevious() {
+    if (
+      !youtubePlayer ||
+      !youtubePlayerReady
+    ) {
+      return;
+    }
+
+    try {
+
+      const currentTime =
+        youtubePlayer.getCurrentTime();
+
+      /*
+       * If the current song has played for more
+       * than 3 seconds, restart it.
+       */
+      if (
+        currentTime > 3
+      ) {
+        youtubePlayer.seekTo(
+          0,
+          true
+        );
+
+        return;
+      }
+
+      youtubePlayer.previousVideo();
+
+    } catch (error) {
+
+      console.warn(
+        '[SangeetHub] Previous failed:',
+        error
+      );
+    }
+  }
+
+
+  /* ==========================================================
+     END HANDLER
+     ========================================================== */
+
+  function handleYouTubeEnded() {
+    updatePlayButton(false);
+
+    updateVisualizer(false);
+
+    if (youtubeRepeat) {
+
+      youtubePlayer.seekTo(
+        0,
+        true
+      );
+
+      youtubePlayer.playVideo();
+
+      return;
+    }
+
+    /*
+     * Normally the YouTube playlist automatically
+     * advances. We only manually advance when needed.
+     */
+    setTimeout(() => {
+
+      const state =
+        youtubePlayer.getPlayerState();
+
+      if (
+        state === YT.PlayerState.ENDED
+      ) {
+        youtubeNext();
+      }
+
+    }, 200);
+  }
+
+
+  /* ==========================================================
+     SHUFFLE
+     ========================================================== */
+
+  function toggleYouTubeShuffle() {
+    youtubeShuffle =
+      !youtubeShuffle;
+
+    const buttons = [
+      getElement('shuffleBtn'),
+      getElement('fsShuffleBtn')
+    ];
+
+    buttons.forEach(button => {
+
+      if (!button) {
+        return;
+      }
+
+      button.classList.toggle(
+        'active',
+        youtubeShuffle
+      );
+
+    });
+
+    ytToast(
+      youtubeShuffle
+        ? 'Shuffle enabled.'
+        : 'Shuffle disabled.'
+    );
+  }
+
+
+  /* ==========================================================
+     REPEAT
+     ========================================================== */
+
+  function toggleYouTubeRepeat() {
+    youtubeRepeat =
+      !youtubeRepeat;
+
+    const buttons = [
+      getElement('repeatBtn'),
+      getElement('fsRepeatBtn')
+    ];
+
+    buttons.forEach(button => {
+
+      if (!button) {
+        return;
+      }
+
+      button.classList.toggle(
+        'active',
+        youtubeRepeat
+      );
+
+    });
+
+    ytToast(
+      youtubeRepeat
+        ? 'Repeat enabled.'
+        : 'Repeat disabled.'
+    );
+  }
+
+
+  /* ==========================================================
+     VOLUME
+     ========================================================== */
+
+  function setYouTubeVolume(
+    value
+  ) {
+    value =
+      Math.max(
+        0,
+        Math.min(
+          100,
+          Number(value) || 0
+        )
+      );
+
+    youtubeVolume =
+      value;
+
+    if (
+      youtubePlayer &&
+      youtubePlayerReady
+    ) {
+      youtubePlayer.setVolume(
+        value
+      );
+    }
+
+    updateVolumeUI(
+      value
+    );
+  }
+
+
+  function updateVolumeUI(
+    value
+  ) {
+    const volumeRange =
+      getElement(
+        'volumeRange'
+      );
+
+    if (volumeRange) {
+      volumeRange.value =
+        value;
+    }
+
+    const fsVolume =
+      getElement(
+        'fsVolume'
+      );
+
+    if (fsVolume) {
+      fsVolume.value =
+        value;
+    }
+
+    const volumeFill =
+      getElement(
+        'volumeFill'
+      );
+
+    if (volumeFill) {
+      volumeFill.style.width =
+        `${value}%`;
+    }
+
+    const icon =
+      getElement(
+        'volIcon'
+      );
+
+    if (!icon) {
+      return;
+    }
+
+    icon.className =
+      value === 0
+        ? 'fas fa-volume-mute'
+        : value < 50
+          ? 'fas fa-volume-down'
+          : 'fas fa-volume-up';
+  }
+
+
+  function toggleYouTubeMute() {
+    if (
+      !youtubePlayer ||
+      !youtubePlayerReady
+    ) {
+      return;
+    }
+
+    if (
+      youtubePlayer.isMuted()
+    ) {
+
+      youtubePlayer.unMute();
+
+      setYouTubeVolume(
+        youtubeVolume || 80
+      );
+
+    } else {
+
+      youtubePlayer.mute();
+
+      updateVolumeUI(0);
+    }
+  }
+
+
+  /* ==========================================================
+     PROGRESS
+     ========================================================== */
+
+  function startYouTubeProgressTimer() {
+    if (youtubeProgressTimer) {
+      clearInterval(
+        youtubeProgressTimer
+      );
+    }
+
+    youtubeProgressTimer =
+      setInterval(
+        updateProgress,
+        500
+      );
+  }
+
+
+  function updateProgress() {
+    if (
+      !youtubePlayer ||
+      !youtubePlayerReady
+    ) {
+      return;
+    }
+
+    try {
+
+      const current =
+        youtubePlayer.getCurrentTime();
+
+      const duration =
+        youtubePlayer.getDuration();
+
+      if (
+        !duration ||
+        duration <= 0
+      ) {
+        return;
+      }
+
+      const percentage =
+        Math.min(
+          100,
+          Math.max(
+            0,
+            (current / duration) *
+            100
+          )
+        );
+
+      setProgressUI(
+        percentage,
+        current,
+        duration
+      );
+
+    } catch {
+      // Player may not be initialized yet.
+    }
+  }
+
+
+  function setProgressUI(
+    percentage,
+    current,
+    duration
+  ) {
+    const fill =
+      getElement(
+        'progressFill'
+      );
+
+    if (fill) {
+      fill.style.width =
+        `${percentage}%`;
+    }
+
+    const thumb =
+      getElement(
+        'progressThumb'
+      );
+
+    if (thumb) {
+      thumb.style.left =
+        `${percentage}%`;
+    }
+
+    const currentLabel =
+      getElement(
+        'currentTime'
+      );
+
+    if (currentLabel) {
+      currentLabel.textContent =
+        formatTime(current);
+    }
+
+    const durationLabel =
+      getElement(
+        'duration'
+      );
+
+    if (durationLabel) {
+      durationLabel.textContent =
+        formatTime(duration);
+    }
+
+    const fsFill =
+      getElement(
+        'fsProgressFill'
+      );
+
+    if (fsFill) {
+      fsFill.style.width =
+        `${percentage}%`;
+    }
+
+    const fsThumb =
+      getElement(
+        'fsProgressThumb'
+      );
+
+    if (fsThumb) {
+      fsThumb.style.left =
+        `${percentage}%`;
+    }
+
+    const fsCurrent =
+      getElement(
+        'fsCurrentTime'
+      );
+
+    if (fsCurrent) {
+      fsCurrent.textContent =
+        formatTime(current);
+    }
+
+    const fsDuration =
+      getElement(
+        'fsDuration'
+      );
+
+    if (fsDuration) {
+      fsDuration.textContent =
+        formatTime(duration);
+    }
+  }
+
+
+  function formatTime(
+    seconds
+  ) {
+    if (
+      !Number.isFinite(
+        Number(seconds)
+      )
+    ) {
+      return '0:00';
+    }
+
+    seconds =
+      Math.max(
+        0,
+        Math.floor(seconds)
+      );
+
+    const minutes =
+      Math.floor(
+        seconds / 60
+      );
+
+    const remaining =
+      seconds % 60;
+
+    return `${minutes}:${String(
+      remaining
+    ).padStart(2, '0')}`;
+  }
+
+
+  function seekYouTube(
+    event,
+    trackId
+  ) {
+    if (
+      !youtubePlayer ||
+      !youtubePlayerReady
+    ) {
+      return;
+    }
+
+    const track =
+      getElement(trackId);
+
+    if (!track) {
+      return;
+    }
+
+    const rect =
+      track.getBoundingClientRect();
+
+    if (!rect.width) {
+      return;
+    }
+
+    const percentage =
+      Math.max(
+        0,
+        Math.min(
+          1,
+          (event.clientX -
+            rect.left) /
+            rect.width
+        )
+      );
+
+    const duration =
+      youtubePlayer.getDuration();
+
+    youtubePlayer.seekTo(
+      duration * percentage,
+      true
+    );
+  }
+
+
+  /* ==========================================================
+     QUEUE
+     ========================================================== */
+
+  function renderYouTubeQueue() {
+    const queueList =
+      getElement('queueList');
+
+    if (!queueList) {
+      return;
+    }
+
+    if (
+      !youtubePlaylist.length
+    ) {
+      queueList.innerHTML = `
+        <div style="
+          padding:20px;
+          text-align:center;
+          opacity:.6;
+        ">
+          No YouTube playlist loaded.
+        </div>
+      `;
+
+      return;
+    }
+
+    queueList.innerHTML =
+      youtubePlaylist
+        .map(
+          (song, index) => {
+
+            const active =
+              index ===
+              youtubeCurrentIndex;
+
+            const thumbnail =
+              `https://i.ytimg.com/vi/${encodeURIComponent(song.id)}/default.jpg`;
+
+            return `
+              <button
+                class="queue-item ${
+                  active
+                    ? 'active'
+                    : ''
+                }"
+                data-youtube-index="${index}"
+                style="
+                  display:flex;
+                  align-items:center;
+                  gap:10px;
+                  width:100%;
+                  border:0;
+                  background:none;
+                  color:inherit;
+                  text-align:left;
+                  cursor:pointer;
+                  padding:8px;
+                "
+              >
+                <img
+                  src="${thumbnail}"
+                  alt=""
+                  style="
+                    width:42px;
+                    height:42px;
+                    object-fit:cover;
+                    border-radius:6px;
+                  "
+                />
+
+                <div style="
+                  min-width:0;
+                  flex:1;
+                ">
+                  <div style="
+                    white-space:nowrap;
+                    overflow:hidden;
+                    text-overflow:ellipsis;
+                    font-weight:600;
+                  ">
+                    ${
+                      active
+                        ? '▶ Playing'
+                        : `Track ${index + 1}`
+                    }
+                  </div>
+
+                  <div style="
+                    opacity:.55;
+                    font-size:.75rem;
+                  ">
+                    YouTube
+                  </div>
+                </div>
+              </button>
+            `;
+          }
+        )
+        .join('');
+
+    queueList
+      .querySelectorAll(
+        '[data-youtube-index]'
+      )
+      .forEach(button => {
+
+        button.addEventListener(
+          'click',
+          () => {
+
+            const index =
+              Number(
+                button.dataset
+                  .youtubeIndex
+              );
+
+            if (
+              youtubePlayer &&
+              youtubePlayerReady
+            ) {
+              youtubePlayer.playVideoAt(
+                index
+              );
+            }
+
+          }
+        );
+
+      });
+  }
+
+
+  function updateQueueCurrent(
+    title,
+    artist,
+    thumbnail
+  ) {
+    const current =
+      getElement(
+        'queueCurrent'
+      );
+
+    if (!current) {
+      return;
+    }
+
+    current.innerHTML = `
+      <div style="
+        display:flex;
+        align-items:center;
+        gap:12px;
+      ">
+        <img
+          src="${thumbnail}"
+          alt=""
+          style="
+            width:55px;
+            height:55px;
+            object-fit:cover;
+            border-radius:8px;
+          "
+        />
+
+        <div style="
+          min-width:0;
+        ">
+          <strong style="
+            display:block;
+            white-space:nowrap;
+            overflow:hidden;
+            text-overflow:ellipsis;
+          ">
+            ${escapeHtml(title)}
+          </strong>
+
+          <span style="
+            opacity:.6;
+            font-size:.8rem;
+          ">
+            ${escapeHtml(artist)}
+          </span>
+        </div>
+      </div>
+    `;
+  }
+
+
+  /* ==========================================================
+     PLAY BUTTON UI
+     ========================================================== */
+
+  function updatePlayButton(
+    playing
+  ) {
+    const playIcon =
+      getElement('playIcon');
+
+    if (playIcon) {
+      playIcon.className =
+        playing
+          ? 'fas fa-pause'
+          : 'fas fa-play';
+    }
+
+    const fsPlayIcon =
+      getElement(
+        'fsPlayIcon'
+      );
+
+    if (fsPlayIcon) {
+      fsPlayIcon.className =
+        playing
+          ? 'fas fa-pause'
+          : 'fas fa-play';
+    }
+  }
+
+
+  function updateVisualizer(
+    playing
+  ) {
+    const visualizer =
+      getElement(
+        'playerVisualizer'
+      );
+
+    if (visualizer) {
+      visualizer.classList.toggle(
+        'playing',
+        playing
+      );
+    }
+
+    const vinyl =
+      getElement(
+        'vinyl3d'
+      );
+
+    if (vinyl) {
+      vinyl.classList.toggle(
+        'playing',
+        playing
+      );
+    }
+
+    const fsVinyl =
+      getElement(
+        'fsVinylWrap'
+      );
+
+    if (fsVinyl) {
+      fsVinyl.classList.toggle(
+        'playing',
+        playing
+      );
+    }
+  }
+
+
+  /* ==========================================================
+     PLAY HISTORY
+     ========================================================== */
+
+  function updatePlayHistory(
+    videoId,
+    title,
+    artist
+  ) {
+    if (!videoId) {
+      return;
+    }
+
+    try {
+
+      const key =
+        'sangeethub_youtube_history';
+
+      const existing =
+        JSON.parse(
+          localStorage.getItem(
+            key
+          ) || '[]'
+        );
+
+      const filtered =
+        existing.filter(
+          item =>
+            item.videoId !==
+            videoId
+        );
+
+      filtered.unshift({
+        videoId,
+        title,
+        artist,
+        playedAt:
+          Date.now()
+      });
+
+      localStorage.setItem(
+        key,
+        JSON.stringify(
+          filtered.slice(0, 50)
+        )
+      );
+
+    } catch (error) {
+
+      console.warn(
+        '[SangeetHub] History error:',
+        error
+      );
+    }
+  }
+
+
+  /* ==========================================================
+     BUTTON BINDING
+     ========================================================== */
+
+  function bindYouTubeControls() {
+
+    /*
+     * Play / pause
+     */
+    bind(
+      'playBtn',
+      'click',
+      youtubePlayPause
+    );
+
+    bind(
+      'fsPlayBtn',
+      'click',
+      youtubePlayPause
+    );
+
+
+    /*
+     * Next
+     */
+    bind(
+      'nextBtn',
+      'click',
+      youtubeNext
+    );
+
+    bind(
+      'fsNextBtn',
+      'click',
+      youtubeNext
+    );
+
+
+    /*
+     * Previous
+     */
+    bind(
+      'prevBtn',
+      'click',
+      youtubePrevious
+    );
+
+    bind(
+      'fsPrevBtn',
+      'click',
+      youtubePrevious
+    );
+
+
+    /*
+     * Shuffle
+     */
+    bind(
+      'shuffleBtn',
+      'click',
+      toggleYouTubeShuffle
+    );
+
+    bind(
+      'fsShuffleBtn',
+      'click',
+      toggleYouTubeShuffle
+    );
+
+
+    /*
+     * Repeat
+     */
+    bind(
+      'repeatBtn',
+      'click',
+      toggleYouTubeRepeat
+    );
+
+    bind(
+      'fsRepeatBtn',
+      'click',
+      toggleYouTubeRepeat
+    );
+
+
+    /*
+     * Mute
+     */
+    bind(
+      'muteBtn',
+      'click',
+      toggleYouTubeMute
+    );
+
+
+    /*
+     * Volume
+     */
+    const volume =
+      getElement(
+        'volumeRange'
+      );
+
+    if (volume) {
+
+      volume.addEventListener(
+        'input',
+        event => {
+
+          setYouTubeVolume(
+            event.target.value
+          );
+
+        }
+      );
+    }
+
+
+    const fsVolume =
+      getElement(
+        'fsVolume'
+      );
+
+    if (fsVolume) {
+
+      fsVolume.addEventListener(
+        'input',
+        event => {
+
+          setYouTubeVolume(
+            event.target.value
+          );
+
+        }
+      );
+    }
+
+
+    /*
+     * Progress
+     */
+    bind(
+      'progressTrack',
+      'click',
+      event =>
+        seekYouTube(
+          event,
+          'progressTrack'
+        )
+    );
+
+    bind(
+      'fsProgressTrack',
+      'click',
+      event =>
+        seekYouTube(
+          event,
+          'fsProgressTrack'
+        )
+    );
+
+
+    /*
+     * YouTube playlist settings
+     */
+    bind(
+      'youtubePlaylistSettingsBtn',
+      'click',
+      openYouTubePlaylistModal
+    );
+
+
+    bind(
+      'youtubePlaylistModalClose',
+      'click',
+      closeYouTubePlaylistModal
+    );
+
+
+    bind(
+      'youtubePlaylistSaveBtn',
+      'click',
+      saveYouTubePlaylistFromModal
+    );
+
+
+    bind(
+      'youtubePlaylistClearBtn',
+      'click',
+      clearYouTubePlaylist
+    );
+
+
+    /*
+     * Keyboard shortcuts
+     */
+    document.addEventListener(
+      'keydown',
+      event => {
+
+        /*
+         * Do not trigger shortcuts while typing.
+         */
+        const tag =
+          document.activeElement
+            ?.tagName;
+
+        if (
+          tag === 'INPUT' ||
+          tag === 'TEXTAREA'
+        ) {
+          return;
+        }
+
+        /*
+         * Space = play / pause
+         */
+        if (
+          event.code === 'Space'
+        ) {
+
+          event.preventDefault();
+
+          youtubePlayPause();
+        }
+
+        /*
+         * Arrow right = next
+         */
+        if (
+          event.code ===
+          'ArrowRight'
+        ) {
+          youtubeNext();
+        }
+
+        /*
+         * Arrow left = previous
+         */
+        if (
+          event.code ===
+          'ArrowLeft'
+        ) {
+          youtubePrevious();
+        }
+      }
+    );
+  }
+
+
+  function bind(
+    id,
+    event,
+    callback
+  ) {
+    const element =
+      getElement(id);
+
+    if (!element) {
+      return;
+    }
+
+    element.addEventListener(
+      event,
+      callback
+    );
+  }
+
+
+  /* ==========================================================
+     PLAYLIST MODAL
+     ========================================================== */
+
+  function openYouTubePlaylistModal() {
+    const modal =
+      getElement(
+        'youtubePlaylistModal'
+      );
+
+    if (!modal) {
+      return;
+    }
+
+    const input =
+      getElement(
+        'youtubePlaylistInput'
+      );
+
+    const saved =
+      getSavedPlaylistId();
+
+    if (input) {
+      input.value =
+        saved || '';
+    }
+
+    updatePlaylistStatus(
+      saved
+        ? 'A YouTube playlist is currently connected.'
+        : 'No YouTube playlist is connected.'
+    );
+
+    modal.classList.remove(
+      'hidden'
+    );
+  }
+
+
+  function closeYouTubePlaylistModal() {
+    const modal =
+      getElement(
+        'youtubePlaylistModal'
+      );
+
+    if (modal) {
+      modal.classList.add(
+        'hidden'
+      );
+    }
+  }
+
+
+  function saveYouTubePlaylistFromModal() {
+    const input =
+      getElement(
+        'youtubePlaylistInput'
+      );
+
+    if (!input) {
+      return;
+    }
+
+    const value =
+      input.value.trim();
+
+    const playlistId =
+      extractYouTubePlaylistId(
+        value
+      );
+
+    if (!playlistId) {
+
+      updatePlaylistStatus(
+        'Invalid playlist URL or ID.'
+      );
+
+      ytToast(
+        'Invalid YouTube playlist.'
+      );
+
+      return;
+    }
+
+    const loaded =
+      loadYouTubePlaylist(
+        playlistId,
+        true
+      );
+
+    if (loaded) {
+      closeYouTubePlaylistModal();
+    }
+  }
+
+
+  function clearYouTubePlaylist() {
+    clearSavedPlaylist();
+
+    youtubePlaylist = [];
+
+    youtubeCurrentIndex = 0;
+
+    if (
+      youtubePlayer &&
+      youtubePlayerReady
+    ) {
+
+      try {
+        youtubePlayer.stopVideo();
+      } catch {}
+    }
+
+    renderYouTubeQueue();
+
+    updatePlaylistStatus(
+      'YouTube playlist removed.'
+    );
+
+    ytToast(
+      'YouTube playlist removed.'
+    );
+  }
+
+
+  function updatePlaylistStatus(
+    message
+  ) {
+    const status =
+      getElement(
+        'youtubePlaylistStatus'
+      );
+
+    if (status) {
+      status.textContent =
+        message;
+    }
+  }
+
+
+  /* ==========================================================
+     INITIALIZATION
+     ========================================================== */
+
+  function initializeYouTubeIntegration() {
+
+    console.log(
+      '[SangeetHub] Initializing YouTube integration...'
+    );
+
+    bindYouTubeControls();
+
+    /*
+     * Initialize API immediately if it is already loaded.
+     */
+    if (
+      window.YT &&
+      window.YT.Player
+    ) {
+
+      youtubeReady = true;
+
+      initializeYouTubePlayer();
+
+    } else {
+
+      console.log(
+        '[SangeetHub] Waiting for YouTube API...'
+      );
+    }
+
+    /*
+     * Set initial volume UI.
+     */
+    updateVolumeUI(
+      youtubeVolume
+    );
+  }
+
+
+  /* ==========================================================
+     START AFTER DOM LOAD
+     ========================================================== */
+
+  if (
+    document.readyState ===
+    'loading'
+  ) {
+
+    document.addEventListener(
+      'DOMContentLoaded',
+      initializeYouTubeIntegration
+    );
+
+  } else {
+
+    initializeYouTubeIntegration();
+  }
+
+
+  /* ==========================================================
+     PUBLIC API
+     ========================================================== */
+
+  window.SangeetHubYouTube = {
+
+    loadPlaylist:
+      loadYouTubePlaylist,
+
+    play:
+      () => {
+        if (
+          youtubePlayer &&
+          youtubePlayerReady
+        ) {
+          youtubePlayer.playVideo();
+        }
+      },
+
+    pause:
+      () => {
+        if (
+          youtubePlayer &&
+          youtubePlayerReady
+        ) {
+          youtubePlayer.pauseVideo();
+        }
+      },
+
+    next:
+      youtubeNext,
+
+    previous:
+      youtubePrevious,
+
+    getPlaylist:
+      () => youtubePlaylist,
+
+    getPlayer:
+      () => youtubePlayer
+  };
+
+
+})();
+const DEFAULT_YOUTUBE_PLAYLIST_ID =
+  'https://music.youtube.com/playlist?list=PLSRAmsHpoE9I&si=16oOZlhk213S8Zr9';
