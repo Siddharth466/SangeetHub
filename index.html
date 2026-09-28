@@ -697,6 +697,14 @@
 
     <!-- EXTRAS -->
     <div class="player-extras">
+      <button
+  class="ctrl-btn"
+  id="youtubePlaylistSettingsBtn"
+  title="YouTube Playlist"
+  aria-label="YouTube Playlist"
+>
+  <i class="fab fa-youtube"></i>
+</button>
       <div class="player-visualizer" id="playerVisualizer">
         <span></span><span></span><span></span><span></span><span></span>
         <span></span><span></span><span></span>
@@ -881,8 +889,83 @@
     </button>
   </nav>
 
-  <!-- AUDIO ENGINE -->
-  <audio id="audioEngine" preload="metadata"></audio>
+  <!-- AUDIO ENGINE
+     Kept for compatibility with the existing SangeetHub UI.
+     YouTube is now the primary music engine. -->
+<audio id="audioEngine" preload="metadata"></audio>
+
+<!-- YOUTUBE PLAYER HOST -->
+<div
+  id="youtubePlayerHost"
+  style="
+    position: fixed;
+    width: 1px;
+    height: 1px;
+    left: -10px;
+    bottom: -10px;
+    opacity: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: -1;
+  "
+  aria-hidden="true"
+></div>
+
+<!-- YOUTUBE PLAYLIST SETTINGS -->
+<div class="modal-overlay hidden" id="youtubePlaylistModal">
+  <div class="modal glass-card">
+    <button class="modal-close" id="youtubePlaylistModalClose">
+      <i class="fas fa-times"></i>
+    </button>
+
+    <div style="margin-bottom: 20px;">
+      <p class="section-overline">▶ YouTube Music</p>
+      <h3 class="modal-title">Connect YouTube Playlist</h3>
+      <p style="opacity:.75; line-height:1.6;">
+        Paste a public or unlisted YouTube / YouTube Music playlist URL.
+        SangeetHub will use that playlist as its music queue.
+      </p>
+    </div>
+
+    <div class="form-group">
+      <label for="youtubePlaylistInput">YouTube Playlist URL or ID</label>
+
+      <input
+        type="text"
+        id="youtubePlaylistInput"
+        placeholder="https://www.youtube.com/playlist?list=..."
+        autocomplete="off"
+      />
+    </div>
+
+    <button
+      class="btn btn-primary full-width"
+      id="youtubePlaylistSaveBtn"
+    >
+      <i class="fas fa-link"></i>
+      Connect Playlist
+    </button>
+
+    <button
+      class="btn btn-ghost full-width"
+      id="youtubePlaylistClearBtn"
+      style="margin-top:10px;"
+    >
+      <i class="fas fa-trash"></i>
+      Clear Playlist
+    </button>
+
+    <p
+      id="youtubePlaylistStatus"
+      style="
+        margin-top:15px;
+        font-size:.85rem;
+        opacity:.7;
+        line-height:1.5;
+      "
+    ></p>
+  </div>
+</div>
 
   <!-- CDN LIBRARIES -->
   <!-- Three.js -->
@@ -895,7 +978,11 @@
   <!-- Typed.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/typed.js/2.1.0/typed.umd.js"></script>
 
-  <!-- APP JS -->
-  <script src="script.js"></script>
+
+ <!-- YouTube IFrame Player API -->
+<script src="https://www.youtube.com/iframe_api"></script>
+
+<!-- APP JS -->
+<script src="script.js"></script>
 </body>
 </html>
