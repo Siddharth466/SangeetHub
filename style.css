@@ -1745,3 +1745,34 @@ input, textarea { font-family: var(--font-main); outline: none; }
   backdrop-filter: blur(4px);
 }
 .sidebar-overlay.show { display: block; }
+/* ═══════════════════════════════════════════════════════════
+   SANGEETHUB — CINEMATIC VISUALS + LYRICS
+   ═══════════════════════════════════════════════════════════ */
+
+.cinematic-visual-stage{
+  position:fixed; inset:0; z-index:15; pointer-events:none; opacity:0;
+  transition:opacity .5s ease; overflow:hidden; background:#050509;
+}
+.cinematic-visual-stage.active{opacity:1}
+#cinematicVisualCanvas{width:100%;height:100%;display:block}
+.cinematic-grain{position:absolute;inset:0;opacity:.10;mix-blend-mode:screen;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.35'/%3E%3C/svg%3E")}
+.cinematic-vignette{position:absolute;inset:0;background:radial-gradient(circle at center,transparent 25%,rgba(0,0,0,.72) 100%)}
+.visual-hud{position:absolute;top:90px;right:28px;display:flex;gap:12px;align-items:center;
+  font:600 10px/1 Inter,sans-serif;letter-spacing:.16em;color:rgba(255,255,255,.72)}
+.visual-live{display:flex;gap:7px;align-items:center}.visual-live i{font-size:7px}
+.lyrics-modal{width:min(760px,calc(100vw - 32px));max-height:min(820px,calc(100vh - 32px));overflow:auto}
+.lyrics-header{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;margin-bottom:18px}
+.lyrics-artist{opacity:.65;margin-top:5px}.lyrics-source{font-size:11px;letter-spacing:.12em;text-transform:uppercase;opacity:.6}
+.lyrics-editor-wrap{position:relative}.lyrics-input{width:100%;min-height:420px;resize:vertical;border:1px solid rgba(255,255,255,.12);
+  border-radius:18px;padding:22px;background:rgba(0,0,0,.22);color:inherit;outline:none;
+  font:500 16px/1.85 Inter,sans-serif;transition:border-color .2s,box-shadow .2s}
+.lyrics-input:focus{border-color:rgba(124,58,237,.7);box-shadow:0 0 0 4px rgba(124,58,237,.12)}
+.lyrics-actions{display:flex;gap:10px;margin-top:14px}.lyrics-status{font-size:12px;opacity:.55;margin-top:12px}
+body.cinematic-mode .app,body.cinematic-mode .sidebar,body.cinematic-mode .topbar{filter:brightness(.55)}
+body.cinematic-mode .player-bar{z-index:30;background:rgba(8,8,14,.78);backdrop-filter:blur(24px)}
+body.cinematic-mode .page-content{position:relative;z-index:1}
+@media(max-width:700px){
+  .visual-hud{top:72px;right:14px;font-size:8px}.lyrics-modal{padding:22px}.lyrics-input{min-height:320px}
+  .lyrics-actions{flex-wrap:wrap}.lyrics-actions .btn{flex:1}
+}
