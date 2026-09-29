@@ -1776,3 +1776,26 @@ body.cinematic-mode .page-content{position:relative;z-index:1}
   .visual-hud{top:72px;right:14px;font-size:8px}.lyrics-modal{padding:22px}.lyrics-input{min-height:320px}
   .lyrics-actions{flex-wrap:wrap}.lyrics-actions .btn{flex:1}
 }
+
+/* ═══ SANGEETHUB CINEMATIC UI 3.0 ═══ */
+:root{
+ --sh-violet:#7c3aed;--sh-cyan:#22d3ee;--sh-pink:#ec4899;--sh-bg:#05050a;
+}
+.sangeethub-cinematic-backdrop{position:fixed;inset:0;z-index:-1;overflow:hidden;background:
+ radial-gradient(circle at 15% 15%,rgba(124,58,237,.16),transparent 30%),
+ radial-gradient(circle at 85% 75%,rgba(34,211,238,.10),transparent 30%),#05050a;pointer-events:none}
+.cinematic-orb{position:absolute;border-radius:50%;filter:blur(80px);mix-blend-mode:screen;opacity:.38;animation:shFloat 16s ease-in-out infinite alternate}
+.orb-a{width:42vw;height:42vw;background:rgba(124,58,237,.28);left:-12vw;top:-12vw}
+.orb-b{width:34vw;height:34vw;background:rgba(34,211,238,.20);right:-10vw;top:28vh;animation-delay:-5s}
+.orb-c{width:30vw;height:30vw;background:rgba(236,72,153,.16);left:35vw;bottom:-16vw;animation-delay:-9s}
+.cinematic-stars{position:absolute;inset:0;opacity:.32;background-image:
+ radial-gradient(circle at 12% 22%,#fff 0 1px,transparent 1.5px),
+ radial-gradient(circle at 73% 18%,#fff 0 1px,transparent 1.5px),
+ radial-gradient(circle at 46% 72%,#fff 0 1px,transparent 1.5px),
+ radial-gradient(circle at 91% 66%,#fff 0 1px,transparent 1.5px),
+ radial-gradient(circle at 31% 44%,#fff 0 1px,transparent 1.5px);
+ background-size:280px 240px,340px 310px,410px 350px,360px 300px,500px 420px;animation:shStars 25s linear infinite}
+.cinematic-noise{position:absolute;inset:0;opacity:.045;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");mix-blend-mode:screen}
+@keyframes shFloat{to{transform:translate3d(7vw,4vh,0) scale(1.12)}}
+@keyframes shStars{to{background-position:120px 80px,-80px 100px,100px -70px,-100px 90px,70px -100px}}
+.glass-card,.player-bar,.sidebar,.topbar{backdrop-filter:blur(22px) saturate(135%);-webkit-backdrop-filter:blur(22px) saturate(135%)}
