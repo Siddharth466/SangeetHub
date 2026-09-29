@@ -4010,5 +4010,26 @@ window.navigateTo = navigateTo;
 
 
 })();
-const DEFAULT_YOUTUBE_PLAYLIST_ID =
-  'https://music.youtube.com/playlist?list=PLSRAmsHpoE9I&si=16oOZlhk213S8Zr9';
+
+/* SANGEETHUB EXPERIENCE: playlist-first + lyrics + cinematic visuals */
+(()=>{'use strict';
+const PK='sangeethub_playlist_v3',LK='sangeethub_lyrics_v3';let cv,ct,raf,on=false,meta={id:'',title:'Select a song',artist:'YouTube'};
+const $=id=>document.getElementById(id);
+const pid=v=>{if(!v)return null;v=String(v).trim();if(/^[A-Za-z0-9_-]{10,}$/.test(v)&&!v.includes('/'))return v;try{return new URL(v).searchParams.get('list')}catch(e){return(v.match(/[?&]list=([A-Za-z0-9_-]+)/)||[])[1]||null}};
+const saved=()=>{try{return localStorage.getItem(PK)||''}catch(e){return''}};
+const ls=()=>{try{return JSON.parse(localStorage.getItem(LK)||'{}')}catch(e){return{}}};
+function openPL(){const m=$('youtubePlaylistModal');if(!m)return;$('youtubePlaylistInput').value=saved();$('youtubePlaylistStatus').textContent=saved()?'Saved playlist on this device.':'Paste a public YouTube / YouTube Music playlist URL or ID.';m.classList.remove('hidden')}
+function loadPL(v){const id=pid(v);if(!id){$('youtubePlaylistStatus').textContent='Invalid YouTube playlist URL or ID.';return}try{localStorage.setItem(PK,id)}catch(e){}if(window.SangeetHubYouTube?.loadPlaylist){const ok=window.SangeetHubYouTube.loadPlaylist(id,true);if(ok!==false)$('youtubePlaylistModal').classList.add('hidden')}}
+function clearPL(){try{localStorage.removeItem(PK)}catch(e){}try{window.SangeetHubYouTube?.getPlayer()?.stopVideo()}catch(e){}$('youtubePlaylistStatus').textContent='Playlist cleared.'}
+function lyrics(){const m=$('lyricsModal');if(!m)return;const s=ls();$('lyricsTitle').textContent=meta.title;$('lyricsArtist').textContent=meta.artist;$('lyricsInput').value=s[meta.id]||'';m.classList.remove('hidden')}
+function saveLyrics(){if(!meta.id){$('lyricsStatus').textContent='Play a YouTube track first.';return}const s=ls();s[meta.id]=$('lyricsInput').value;try{localStorage.setItem(LK,JSON.stringify(s))}catch(e){}$('lyricsStatus').textContent='Lyrics saved on this device.'}
+function clearLyrics(){if(!meta.id)return;const s=ls();delete s[meta.id];try{localStorage.setItem(LK,JSON.stringify(s))}catch(e){}$('lyricsInput').value='';$('lyricsStatus').textContent='Lyrics cleared.'}
+function sync(){try{const p=window.SangeetHubYouTube?.getPlayer?.();if(!p?.getVideoData)return;const d=p.getVideoData();if(!d?.video_id)return;meta={id:d.video_id,title:d.title||'YouTube Track',artist:d.author||'YouTube'};['playerTitle','fsTitle'].forEach(x=>$(x)&&($(x).textContent=meta.title));['playerArtist','fsArtist'].forEach(x=>$(x)&&($(x).textContent=meta.artist));$('visualMoodLabel')&&( $('visualMoodLabel').textContent='MOOD • '+mood(meta.title+' '+meta.artist).name)}catch(e){}}
+function mood(s){s=s.toLowerCase();if(/sad|alone|rain|night|broken/.test(s))return{name:'MELANCHOLIC',rgb:'90,100,190'};if(/love|romantic|heart/.test(s))return{name:'ROMANTIC',rgb:'220,60,120'};if(/party|dance|club|bass/.test(s))return{name:'PARTY',rgb:'245,158,11'};if(/rap|hype|energy|power|tough/.test(s))return{name:'ENERGETIC',rgb:'124,58,237'};if(/chill|lofi|calm/.test(s))return{name:'CHILL',rgb:'6,182,212'};return{name:'DREAM',rgb:'124,58,237'}}
+function resize(){if(!cv)return;const d=Math.min(devicePixelRatio||1,2);cv.width=innerWidth*d;cv.height=innerHeight*d;ct.setTransform(d,0,0,d,0,0)}
+function visual(){cv=$('cinematicVisualCanvas');if(!cv)return;ct=cv.getContext('2d');resize();addEventListener('resize',resize);draw()}
+function draw(){if(!on)return;const m=mood(meta.title+' '+meta.artist),t=performance.now()/1000,r=m.rgb;ct.clearRect(0,0,innerWidth,innerHeight);const g=ct.createRadialGradient(innerWidth*.5,innerHeight*.45,0,innerWidth*.5,innerHeight*.45,Math.max(innerWidth,innerHeight)*.8);g.addColorStop(0,'rgba('+r+',.24)');g.addColorStop(.5,'rgba('+r+',.05)');g.addColorStop(1,'rgba(0,0,0,.95)');ct.fillStyle=g;ct.fillRect(0,0,innerWidth,innerHeight);for(let i=0;i<9;i++){const x=innerWidth/2+Math.cos(t*.15+i)*innerWidth*(.12+i*.035),y=innerHeight/2+Math.sin(t*.2+i)*innerHeight*(.1+i*.025),q=80+Math.sin(t*1.4+i)*35;const b=ct.createRadialGradient(x,y,0,x,y,q);b.addColorStop(0,'rgba('+r+',.17)');b.addColorStop(1,'rgba('+r+',0)');ct.fillStyle=b;ct.beginPath();ct.arc(x,y,q,0,7);ct.fill()}raf=requestAnimationFrame(draw)}
+function toggle(){on=!on;document.body.classList.toggle('cinematic-mode',on);$('cinematicVisualStage')?.classList.toggle('active',on);if(on){cancelAnimationFrame(raf);draw()}else cancelAnimationFrame(raf)}
+function bind(){$('youtubePlaylistSettingsBtn')?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openPL()});$('youtubePlaylistModalClose')?.addEventListener('click',()=>$('youtubePlaylistModal')?.classList.add('hidden'));$('youtubePlaylistSaveBtn')?.addEventListener('click',()=>loadPL($('youtubePlaylistInput').value));$('youtubePlaylistClearBtn')?.addEventListener('click',clearPL);$('lyricsBtn')?.addEventListener('click',lyrics);$('lyricsModalClose')?.addEventListener('click',()=>$('lyricsModal')?.classList.add('hidden'));$('lyricsSaveBtn')?.addEventListener('click',saveLyrics);$('lyricsClearBtn')?.addEventListener('click',clearLyrics);$('cinematicVisualsBtn')?.addEventListener('click',toggle);visual();setInterval(sync,700);const id=saved();if(id)setTimeout(()=>loadPL(id),2000)}
+document.readyState==='loading'?document.addEventListener('DOMContentLoaded',bind):bind();
+})();
