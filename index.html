@@ -697,14 +697,15 @@
 
     <!-- EXTRAS -->
     <div class="player-extras">
-      <button
-  class="ctrl-btn"
-  id="youtubePlaylistSettingsBtn"
-  title="YouTube Playlist"
-  aria-label="YouTube Playlist"
->
-  <i class="fab fa-youtube"></i>
-</button>
+      <button class="ctrl-btn" id="youtubePlaylistSettingsBtn" title="YouTube Playlist" aria-label="YouTube Playlist">
+        <i class="fab fa-youtube"></i>
+      </button>
+      <button class="ctrl-btn" id="lyricsBtn" title="Lyrics" aria-label="Lyrics">
+        <i class="fas fa-align-left"></i>
+      </button>
+      <button class="ctrl-btn" id="cinematicVisualsBtn" title="Cinematic Visuals" aria-label="Cinematic Visuals">
+        <i class="fas fa-wand-magic-sparkles"></i>
+      </button>
       <div class="player-visualizer" id="playerVisualizer">
         <span></span><span></span><span></span><span></span><span></span>
         <span></span><span></span><span></span>
@@ -807,6 +808,43 @@
           </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ CINEMATIC MUSIC VISUALS ═══════════════════ -->
+  <section id="cinematicVisualStage" class="cinematic-visual-stage" aria-hidden="true">
+    <canvas id="cinematicVisualCanvas"></canvas>
+    <div class="cinematic-grain"></div>
+    <div class="cinematic-vignette"></div>
+    <div class="visual-hud">
+      <span class="visual-live"><i class="fas fa-circle"></i> LIVE VISUAL</span>
+      <span id="visualMoodLabel">MOOD • READY</span>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ LYRICS MODAL ═══════════════════ -->
+  <div class="modal-overlay hidden" id="lyricsModal">
+    <div class="lyrics-modal glass-card">
+      <button class="modal-close" id="lyricsModalClose" aria-label="Close lyrics">
+        <i class="fas fa-times"></i>
+      </button>
+      <div class="lyrics-header">
+        <div>
+          <p class="section-overline">♪ LYRICS</p>
+          <h3 class="modal-title" id="lyricsTitle">Select a song</h3>
+          <p id="lyricsArtist" class="lyrics-artist">YouTube</p>
+        </div>
+        <span class="lyrics-source">Your lyrics</span>
+      </div>
+      <div class="lyrics-editor-wrap">
+        <textarea id="lyricsInput" class="lyrics-input" spellcheck="false"
+          placeholder="Paste or type the lyrics for this track here...&#10;&#10;Lyrics are saved locally in your browser for this video."></textarea>
+      </div>
+      <div class="lyrics-actions">
+        <button class="btn btn-primary" id="lyricsSaveBtn"><i class="fas fa-save"></i> Save Lyrics</button>
+        <button class="btn btn-ghost" id="lyricsClearBtn"><i class="fas fa-trash"></i> Clear</button>
+      </div>
+      <p id="lyricsStatus" class="lyrics-status">Lyrics are stored locally on this device.</p>
     </div>
   </div>
 
@@ -922,8 +960,9 @@
       <p class="section-overline">▶ YouTube Music</p>
       <h3 class="modal-title">Connect YouTube Playlist</h3>
       <p style="opacity:.75; line-height:1.6;">
-        Paste a public or unlisted YouTube / YouTube Music playlist URL.
-        SangeetHub will use that playlist as its music queue.
+        Paste any public YouTube / YouTube Music playlist URL or playlist ID.
+        SangeetHub will use it as your queue and remember it on this device.
+        You can change it anytime.
       </p>
     </div>
 
@@ -943,7 +982,7 @@
       id="youtubePlaylistSaveBtn"
     >
       <i class="fas fa-link"></i>
-      Connect Playlist
+      Load My Playlist
     </button>
 
     <button
