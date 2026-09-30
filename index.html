@@ -667,8 +667,16 @@
         <p class="player-track-title" id="playerTitle">Select a song</p>
         <p class="player-track-artist" id="playerArtist">—</p>
       </div>
-      <button class="player-like-btn" id="playerLikeBtn" aria-label="Like song">
-        <i class="far fa-heart"></i>
+      <button type="button" class="player-like-btn" id="playerLikeBtn" aria-label="Like song">
+        <div class="love">
+          <input id="playerLoveSwitch" type="checkbox">
+          <label class="love-heart" for="playerLoveSwitch" aria-label="Favourite song">
+            <i class="left"></i>
+            <i class="right"></i>
+            <i class="bottom"></i>
+            <div class="round"></div>
+          </label>
+        </div>
       </button>
     </div>
 
@@ -769,7 +777,17 @@
           <h2 class="fs-title" id="fsTitle">Select a song</h2>
           <p class="fs-artist" id="fsArtist">—</p>
           <div class="fs-track-actions">
-            <button class="fs-action-btn" id="fsLikeBtn"><i class="far fa-heart"></i></button>
+            <button type="button" class="fs-action-btn" id="fsLikeBtn" aria-label="Favourite song">
+          <div class="love">
+            <input id="fsLoveSwitch" type="checkbox">
+            <label class="love-heart" for="fsLoveSwitch" aria-label="Favourite song">
+              <i class="left"></i>
+              <i class="right"></i>
+              <i class="bottom"></i>
+              <div class="round"></div>
+            </label>
+          </div>
+        </button>
             <button class="fs-action-btn" id="fsShareBtn"><i class="fas fa-share-alt"></i></button>
             <button class="fs-action-btn" id="fsAddToPlaylistBtn"><i class="fas fa-plus"></i></button>
           </div>
