@@ -2105,3 +2105,9 @@ body.cinematic-mode .page-content{position:relative;z-index:1}
   #playerBar #playBtn{width:41px;height:41px;flex-basis:41px}
   #playerBar .player-progress{grid-template-columns:29px minmax(70px,1fr) 29px}
 }
+
+/* FINAL PLAYER WIRING FIX */
+#playerBar{display:grid!important}
+#playerBar .ctrl-btn,
+#playerBar input,
+#playerBar .progress-track{pointer-events:auto}
