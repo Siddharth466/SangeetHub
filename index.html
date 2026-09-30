@@ -656,7 +656,7 @@
   </div><!-- end app -->
 
   <!-- ═══════════════════ MUSIC PLAYER ═══════════════════ -->
-  <div class="player-bar" id="playerBar">
+  <div class="player-bar" id="playerBar" role="region" aria-label="Music player">
     <!-- NOW PLAYING -->
     <div class="player-nowplaying">
       <div class="player-cover-wrap">
@@ -675,19 +675,19 @@
     <!-- CONTROLS -->
     <div class="player-controls-center">
       <div class="player-control-btns">
-        <button class="ctrl-btn" id="shuffleBtn" aria-label="Shuffle" title="Shuffle">
+        <button type="button" class="ctrl-btn" id="shuffleBtn" aria-label="Shuffle" title="Shuffle">
           <i class="fas fa-random"></i>
         </button>
-        <button class="ctrl-btn" id="prevBtn" aria-label="Previous" title="Previous">
+        <button type="button" class="ctrl-btn" id="prevBtn" aria-label="Previous" title="Previous">
           <i class="fas fa-step-backward"></i>
         </button>
-        <button class="ctrl-btn play-pause-btn" id="playBtn" aria-label="Play or pause" title="Play / Pause">
+        <button type="button" class="ctrl-btn play-pause-btn" id="playBtn" aria-label="Play or pause" title="Play / Pause">
           <i class="fas fa-play" id="playIcon"></i>
         </button>
-        <button class="ctrl-btn" id="nextBtn" aria-label="Next" title="Next">
+        <button type="button" class="ctrl-btn" id="nextBtn" aria-label="Next" title="Next">
           <i class="fas fa-step-forward"></i>
         </button>
-        <button class="ctrl-btn" id="repeatBtn" aria-label="Repeat" title="Repeat">
+        <button type="button" class="ctrl-btn" id="repeatBtn" aria-label="Repeat" title="Repeat">
           <i class="fas fa-redo"></i>
         </button>
       </div>
@@ -703,24 +703,24 @@
 
     <!-- EXTRAS -->
     <div class="player-extras">
-      <button class="ctrl-btn" id="youtubePlaylistSettingsBtn" title="YouTube Playlist" aria-label="YouTube Playlist">
+      <button type="button" class="ctrl-btn" id="youtubePlaylistSettingsBtn" title="YouTube Playlist" aria-label="YouTube Playlist">
         <i class="fab fa-youtube"></i>
       </button>
-      <button class="ctrl-btn" id="lyricsBtn" title="Lyrics" aria-label="Lyrics">
+      <button type="button" class="ctrl-btn" id="lyricsBtn" title="Lyrics" aria-label="Lyrics">
         <i class="fas fa-align-left"></i>
       </button>
-      <button class="ctrl-btn" id="cinematicVisualsBtn" title="Cinematic Visuals" aria-label="Cinematic Visuals">
+      <button type="button" class="ctrl-btn" id="cinematicVisualsBtn" title="Cinematic Visuals" aria-label="Cinematic Visuals">
         <i class="fas fa-wand-magic-sparkles"></i>
       </button>
       <div class="player-visualizer" id="playerVisualizer">
         <span></span><span></span><span></span><span></span><span></span>
         <span></span><span></span><span></span>
       </div>
-      <button class="ctrl-btn" id="queueBtn" title="Queue" aria-label="Queue">
+      <button type="button" class="ctrl-btn" id="queueBtn" title="Queue" aria-label="Queue">
         <i class="fas fa-list-ol"></i>
       </button>
       <div class="volume-group">
-        <button class="ctrl-btn vol-icon-btn" id="muteBtn" aria-label="Mute or unmute" title="Mute / Unmute">
+        <button type="button" class="ctrl-btn vol-icon-btn" id="muteBtn" aria-label="Mute or unmute" title="Mute / Unmute">
           <i class="fas fa-volume-up" id="volIcon"></i>
         </button>
         <div class="volume-track" id="volumeTrack">
@@ -728,7 +728,7 @@
           <input type="range" id="volumeRange" min="0" max="100" value="80" class="volume-range" />
         </div>
       </div>
-      <button class="ctrl-btn" id="fullscreenPlayerBtn" title="Full Screen" aria-label="Full screen player">
+      <button type="button" class="ctrl-btn" id="fullscreenPlayerBtn" title="Full Screen" aria-label="Full screen player">
         <i class="fas fa-expand"></i>
       </button>
     </div>
@@ -790,11 +790,11 @@
         </div>
 
         <div class="fs-controls">
-          <button class="ctrl-btn" id="fsShuffleBtn"><i class="fas fa-random"></i></button>
-          <button class="ctrl-btn" id="fsPrevBtn"><i class="fas fa-step-backward"></i></button>
-          <button class="ctrl-btn play-pause-btn lg" id="fsPlayBtn"><i class="fas fa-play" id="fsPlayIcon"></i></button>
-          <button class="ctrl-btn" id="fsNextBtn"><i class="fas fa-step-forward"></i></button>
-          <button class="ctrl-btn" id="fsRepeatBtn"><i class="fas fa-redo"></i></button>
+          <button type="button" class="ctrl-btn" id="fsShuffleBtn"><i class="fas fa-random"></i></button>
+          <button type="button" class="ctrl-btn" id="fsPrevBtn"><i class="fas fa-step-backward"></i></button>
+          <button type="button" class="ctrl-btn play-pause-btn lg" id="fsPlayBtn"><i class="fas fa-play" id="fsPlayIcon"></i></button>
+          <button type="button" class="ctrl-btn" id="fsNextBtn"><i class="fas fa-step-forward"></i></button>
+          <button type="button" class="ctrl-btn" id="fsRepeatBtn"><i class="fas fa-redo"></i></button>
         </div>
 
         <div class="fs-volume">
