@@ -1799,3 +1799,8 @@ body.cinematic-mode .page-content{position:relative;z-index:1}
 @keyframes shFloat{to{transform:translate3d(7vw,4vh,0) scale(1.12)}}
 @keyframes shStars{to{background-position:120px 80px,-80px 100px,100px -70px,-100px 90px,70px -100px}}
 .glass-card,.player-bar,.sidebar,.topbar{backdrop-filter:blur(22px) saturate(135%);-webkit-backdrop-filter:blur(22px) saturate(135%)}
+
+
+/* SANGEETHUB FIXES — keep decorative backdrop behind the app without hiding it */
+.sangeethub-cinematic-backdrop{z-index:0}
+.app{position:relative;z-index:1}
