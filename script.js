@@ -1369,13 +1369,21 @@ function updateLikeButtons() {
   const song = currentSong();
   if (!song) return;
   const liked = state.favorites.has(song.id);
+
   if (DOM.playerLikeBtn) {
-    DOM.playerLikeBtn.className = `player-like-btn ${liked ? 'liked' : ''}`;
-    DOM.playerLikeBtn.innerHTML = `<i class="${liked ? 'fas' : 'far'} fa-heart"></i>`;
+    DOM.playerLikeBtn.classList.toggle('liked', liked);
+    const toggle = $('playerLoveSwitch');
+    if (toggle) toggle.checked = liked;
+    DOM.playerLikeBtn.setAttribute('aria-pressed', String(liked));
+    DOM.playerLikeBtn.setAttribute('title', liked ? 'Remove from favourites' : 'Add to favourites');
   }
+
   if (DOM.fsLikeBtn) {
-    DOM.fsLikeBtn.className = `fs-action-btn ${liked ? 'liked' : ''}`;
-    DOM.fsLikeBtn.innerHTML = `<i class="${liked ? 'fas' : 'far'} fa-heart"></i>`;
+    DOM.fsLikeBtn.classList.toggle('liked', liked);
+    const toggle = $('fsLoveSwitch');
+    if (toggle) toggle.checked = liked;
+    DOM.fsLikeBtn.setAttribute('aria-pressed', String(liked));
+    DOM.fsLikeBtn.setAttribute('title', liked ? 'Remove from favourites' : 'Add to favourites');
   }
 }
 
