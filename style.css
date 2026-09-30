@@ -2111,3 +2111,21 @@ body.cinematic-mode .page-content{position:relative;z-index:1}
 #playerBar .ctrl-btn,
 #playerBar input,
 #playerBar .progress-track{pointer-events:auto}
+
+/* SANGEETHUB UIVERSE FAVOURITE HEART */
+.love{width:30px;height:30px;display:grid;place-items:center;position:relative}
+.love>input{display:none}
+.love-heart{box-sizing:border-box;position:relative;display:block;width:10px;height:8px;border:1px solid hsl(231deg 28% 86%);border-top-left-radius:100px;border-top-right-radius:100px;border-bottom:0;transform:rotate(-45deg) scale(2.2);cursor:pointer;top:0;transition:filter .2s ease,transform .2s ease}
+.love-heart::before,.love-heart::after{content:"";display:block;box-sizing:border-box;position:absolute;border-color:hsl(231deg 28% 86%)}
+.love-heart::before{display:none}
+.love-heart::after{right:-9px;transform:rotate(90deg);top:7px;width:10px;height:8px;border:1px solid hsl(231deg 28% 86%);border-bottom:0;border-top-left-radius:100px;border-top-right-radius:100px}
+.love-heart .bottom{content:"";display:block;box-sizing:border-box;position:absolute;width:11px;height:11px;border-left:1px solid hsl(231deg 28% 86%);border-bottom:1px solid hsl(231deg 28% 86%);left:-1px;top:5px;border-radius:0 0 0 5px}
+.love-heart .round{position:absolute;z-index:1;width:8px;height:8px;background:#fff;box-shadow:rgb(0 0 0 / 24%) 0 0 4px 0;border-radius:100%;left:0;bottom:-1px;transition:all .5s ease;animation:sangeet-heart-off .5s forwards}
+.love>input:checked+.love-heart .round{transform:translate(7px,7px);animation:sangeet-heart-on .5s forwards}
+.love>input:checked+.love-heart,.love>input:checked+.love-heart::after,.love>input:checked+.love-heart .bottom{border-color:hsl(347deg 81% 61%);box-shadow:inset 6px -5px 0 2px hsl(347deg 99% 72%)}
+@keyframes sangeet-heart-on{0%{transform:translate(0,0)}50%{transform:translate(0,7px)}100%{transform:translate(7px,7px)}}
+@keyframes sangeet-heart-off{0%{transform:translate(7px,7px)}50%{transform:translate(0,7px)}100%{transform:translate(0,0)}}
+.player-like-btn,.fs-action-btn{position:relative}
+.player-like-btn .love,.fs-action-btn .love{pointer-events:none}
+.player-like-btn.liked,.fs-action-btn.liked{color:hsl(347deg 81% 61%)}
+.player-like-btn:focus-visible,.fs-action-btn:focus-visible{outline:2px solid hsl(347deg 81% 61%);outline-offset:3px}
