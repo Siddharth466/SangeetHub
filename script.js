@@ -2096,13 +2096,10 @@ window.navigateTo = navigateTo;
     switch (event.data) {
 
       case YT.PlayerState.PLAYING:
-
+        syncYouTubeQueue();
         updatePlayButton(true);
-
         updateVisualizer(true);
-
         updateCurrentSongMetadata();
-
         break;
 
 
@@ -2123,9 +2120,7 @@ window.navigateTo = navigateTo;
 
 
       case YT.PlayerState.BUFFERING:
-
         updatePlayButton(true);
-
         break;
 
 
@@ -2499,27 +2494,27 @@ window.navigateTo = navigateTo;
      PLAY / PAUSE
      ========================================================== */
 
-  function youtubePlayPause() {
-    if (
-      !youtubePlayer ||
-      !youtubePlayerReady
-    ) {
-      ytToast(
-        'YouTube player is not ready yet.'
-      );
+  let playPauseLock = false;
 
+  function youtubePlayPause() {
+    if (!youtubePlayer || !youtubePlayerReady || !window.YT) {
+      ytToast('YouTube player is still loading.');
       return;
     }
 
-    const state =
-      youtubePlayer.getPlayerState();
+    if (playPauseLock) return;
 
-    if (
-      state === YT.PlayerState.PLAYING
-    ) {
+    const playerState = youtubePlayer.getPlayerState();
+
+    playPauseLock = true;
+    setTimeout(() => { playPauseLock = false; }, 250);
+
+    if (playerState === YT.PlayerState.PLAYING || playerState === YT.PlayerState.BUFFERING) {
       youtubePlayer.pauseVideo();
+      updatePlayButton(false);
     } else {
       youtubePlayer.playVideo();
+      updatePlayButton(true);
     }
   }
 
