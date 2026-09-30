@@ -2529,10 +2529,8 @@ window.navigateTo = navigateTo;
      ========================================================== */
 
   function youtubeNext() {
-    if (
-      !youtubePlayer ||
-      !youtubePlayerReady
-    ) {
+    if (!youtubePlayer || !youtubePlayerReady || !youtubePlaylist.length) {
+      ytToast('Connect a YouTube playlist first.');
       return;
     }
 
@@ -2575,10 +2573,8 @@ window.navigateTo = navigateTo;
      ========================================================== */
 
   function youtubePrevious() {
-    if (
-      !youtubePlayer ||
-      !youtubePlayerReady
-    ) {
+    if (!youtubePlayer || !youtubePlayerReady || !youtubePlaylist.length) {
+      ytToast('Connect a YouTube playlist first.');
       return;
     }
 
@@ -2808,27 +2804,17 @@ window.navigateTo = navigateTo;
 
 
   function toggleYouTubeMute() {
-    if (
-      !youtubePlayer ||
-      !youtubePlayerReady
-    ) {
-      return;
-    }
+    if (!youtubePlayer || !youtubePlayerReady) return;
 
-    if (
-      youtubePlayer.isMuted()
-    ) {
-
+    if (youtubePlayer.isMuted()) {
       youtubePlayer.unMute();
-
-      setYouTubeVolume(
-        youtubeVolume || 80
-      );
-
+      const restore = Math.max(1, Number(youtubeVolume) || 80);
+      youtubePlayer.setVolume(restore);
+      updateVolumeUI(restore);
     } else {
-
+      const current = youtubePlayer.getVolume();
+      if (current > 0) youtubeVolume = current;
       youtubePlayer.mute();
-
       updateVolumeUI(0);
     }
   }
@@ -3016,49 +3002,56 @@ window.navigateTo = navigateTo;
   }
 
 
-  function seekYouTube(
-    event,
-    trackId
-  ) {
-    if (
-      !youtubePlayer ||
-      !youtubePlayerReady
-    ) {
-      return;
+  function seekYouTube(event, trackId) {
+    if (!youtubePlayer || !youtubePlayerReady) return;
+
+    const track = getElement(trackId);
+    if (!track) return;
+
+    const rect = track.getBoundingClientRect();
+    if (!rect.width) return;
+
+    const clientX = event.clientX ?? (event.touches && event.touches[0]?.clientX);
+    if (typeof clientX !== 'number') return;
+
+    const percentage = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    const duration = youtubePlayer.getDuration();
+
+    if (duration > 0) {
+      youtubePlayer.seekTo(duration * percentage, true);
+      setProgressUI(percentage * 100, duration * percentage, duration);
     }
+  }
 
-    const track =
-      getElement(trackId);
+  function initYouTubeProgressDragging(trackId) {
+    const track = getElement(trackId);
+    if (!track || track.dataset.dragBound === '1') return;
 
-    if (!track) {
-      return;
-    }
+    track.dataset.dragBound = '1';
 
-    const rect =
-      track.getBoundingClientRect();
+    const move = event => {
+      if (!track.dataset.dragging) return;
+      seekYouTube(event, trackId);
+    };
 
-    if (!rect.width) {
-      return;
-    }
+    track.addEventListener('pointerdown', event => {
+      if (event.button !== 0) return;
+      track.dataset.dragging = '1';
+      track.setPointerCapture?.(event.pointerId);
+      seekYouTube(event, trackId);
+    });
 
-    const percentage =
-      Math.max(
-        0,
-        Math.min(
-          1,
-          (event.clientX -
-            rect.left) /
-            rect.width
-        )
-      );
+    track.addEventListener('pointermove', move);
 
-    const duration =
-      youtubePlayer.getDuration();
+    const stop = event => {
+      if (!track.dataset.dragging) return;
+      track.dataset.dragging = '';
+      try { track.releasePointerCapture?.(event.pointerId); } catch {}
+    };
 
-    youtubePlayer.seekTo(
-      duration * percentage,
-      true
-    );
+    track.addEventListener('pointerup', stop);
+    track.addEventListener('pointercancel', stop);
+    track.addEventListener('lostpointercapture', stop);
   }
 
 
@@ -3541,6 +3534,9 @@ window.navigateTo = navigateTo;
           'fsProgressTrack'
         )
     );
+
+    initYouTubeProgressDragging('progressTrack');
+    initYouTubeProgressDragging('fsProgressTrack');
 
 
     /*
