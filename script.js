@@ -1189,45 +1189,16 @@ function renderAdminTab(tab) {
 function initPlayer() {
   const audio = DOM.audio;
   if (!audio) return;
+
+  // YouTube is the primary playback engine. Keep the legacy audio element
+  // available as a fallback/data source, but do not bind the same controls twice.
   audio.volume = state.player.volume;
 
-  // Play/Pause
-  DOM.playBtn?.addEventListener('click', togglePlay);
-  DOM.fsPlayBtn?.addEventListener('click', togglePlay);
-
-  // Next/Prev
-  DOM.nextBtn?.addEventListener('click', nextSong);
-  DOM.prevBtn?.addEventListener('click', prevSong);
-  DOM.fsNextBtn?.addEventListener('click', nextSong);
-  DOM.fsPrevBtn?.addEventListener('click', prevSong);
-
-  // Shuffle
-  DOM.shuffleBtn?.addEventListener('click', toggleShuffle);
-  DOM.fsShuffleBtn?.addEventListener('click', toggleShuffle);
-
-  // Repeat
-  DOM.repeatBtn?.addEventListener('click', cycleRepeat);
-  DOM.fsRepeatBtn?.addEventListener('click', cycleRepeat);
-
-  // Volume
-  DOM.volumeRange?.addEventListener('input', e => {
-    const v = e.target.value / 100;
-    setVolume(v);
-  });
-  DOM.muteBtn?.addEventListener('click', toggleMute);
-  DOM.fsVolume?.addEventListener('input', e => setVolume(e.target.value / 100));
-
-  // Progress bar click/drag
-  initProgressBar(DOM.progressTrack, DOM.progressFill, false);
-  initProgressBar(DOM.fsProgressTrack, DOM.fsProgressFill, true);
-
-  // Audio events
   audio.addEventListener('timeupdate', onTimeUpdate);
   audio.addEventListener('loadedmetadata', onMetaLoaded);
   audio.addEventListener('ended', onSongEnded);
   audio.addEventListener('error', () => { showToast('Could not load audio file', 'warning'); nextSong(); });
 
-  // Like button
   DOM.playerLikeBtn?.addEventListener('click', () => {
     const song = currentSong();
     if (!song) return;
@@ -1241,90 +1212,8 @@ function initPlayer() {
     updateLikeButtons();
   });
 
-  // Fullscreen player
   DOM.fullscreenPlayerBtn?.addEventListener('click', openFullscreen);
   DOM.fsCloseBtn?.addEventListener('click', closeFullscreen);
-  DOM.playerCover?.parentElement?.addEventListener('click', openFullscreen);
-
-  // Queue
-  DOM.queueBtn?.addEventListener('click', toggleQueue);
-  DOM.closeQueueBtn?.addEventListener('click', closeQueue);
-
-  // EQ
-  $$('.eq-range').forEach(range => {
-    range.addEventListener('input', () => {
-      // EQ is visual-only in this implementation
-      showToast(`${range.dataset.band.toUpperCase()}: ${range.value}dB`, 'info');
-    });
-  });
-
-  // Waveform canvas
-  initWaveform();
-
-  // Set initial volume UI
-  updateVolumeUI(state.player.volume);
-}
-
-function initProgressBar(track, fill, isFs) {
-  if (!track) return;
-  let dragging = false;
-
-  track.addEventListener('mousedown', e => {
-    dragging = true;
-    seekTo(e, track, fill);
-  });
-  track.addEventListener('mousemove', e => { if (dragging) seekTo(e, track, fill); });
-  document.addEventListener('mouseup', () => { dragging = false; });
-  track.addEventListener('click', e => seekTo(e, track, fill));
-
-  // Touch
-  track.addEventListener('touchstart', e => seekTo(e.touches[0], track, fill), { passive: true });
-  track.addEventListener('touchmove', e => seekTo(e.touches[0], track, fill), { passive: true });
-}
-
-function seekTo(e, track, fill) {
-  const rect = track.getBoundingClientRect();
-  const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
-  const pct = x / rect.width;
-  const audio = DOM.audio;
-  if (audio?.duration) {
-    audio.currentTime = pct * audio.duration;
-    if (fill) fill.style.width = (pct * 100) + '%';
-    syncProgressBars(pct * 100);
-  }
-}
-
-function onTimeUpdate() {
-  const audio = DOM.audio;
-  if (!audio || !audio.duration) return;
-  const pct = (audio.currentTime / audio.duration) * 100;
-  syncProgressBars(pct);
-  const t = formatTime(audio.currentTime);
-  if (DOM.currentTime) DOM.currentTime.textContent = t;
-  if (DOM.fsCurrentTime) DOM.fsCurrentTime.textContent = t;
-  drawWaveform(pct / 100);
-}
-
-function onMetaLoaded() {
-  const audio = DOM.audio;
-  const d = formatTime(audio?.duration || 0);
-  if (DOM.duration) DOM.duration.textContent = d;
-  if (DOM.fsDuration) DOM.fsDuration.textContent = d;
-}
-
-function onSongEnded() {
-  if (state.player.repeatMode === 2) {
-    DOM.audio.currentTime = 0;
-    DOM.audio.play();
-  } else {
-    nextSong();
-  }
-}
-
-function syncProgressBars(pct) {
-  const p = Math.max(0, Math.min(pct, 100));
-  if (DOM.progressFill) DOM.progressFill.style.width = p + '%';
-  if (DOM.fsProgressFill) DOM.fsProgressFill.style.width = p + '%';
 }
 
 function playSong(index) {
@@ -4013,7 +3902,7 @@ window.navigateTo = navigateTo;
 
 /* SANGEETHUB EXPERIENCE: playlist-first + lyrics + cinematic visuals */
 (()=>{'use strict';
-const PK='sangeethub_playlist_v3',LK='sangeethub_lyrics_v3';let cv,ct,raf,on=false,meta={id:'',title:'Select a song',artist:'YouTube'};
+const PK='sangeethub_youtube_playlist_id',LK='sangeethub_lyrics_v3';let cv,ct,raf,on=false,meta={id:'',title:'Select a song',artist:'YouTube'};
 const $=id=>document.getElementById(id);
 const pid=v=>{if(!v)return null;v=String(v).trim();if(/^[A-Za-z0-9_-]{10,}$/.test(v)&&!v.includes('/'))return v;try{return new URL(v).searchParams.get('list')}catch(e){return(v.match(/[?&]list=([A-Za-z0-9_-]+)/)||[])[1]||null}};
 const saved=()=>{try{return localStorage.getItem(PK)||''}catch(e){return''}};
@@ -4030,6 +3919,6 @@ function resize(){if(!cv)return;const d=Math.min(devicePixelRatio||1,2);cv.width
 function visual(){cv=$('cinematicVisualCanvas');if(!cv)return;ct=cv.getContext('2d');resize();addEventListener('resize',resize);draw()}
 function draw(){if(!on)return;const m=mood(meta.title+' '+meta.artist),t=performance.now()/1000,r=m.rgb;ct.clearRect(0,0,innerWidth,innerHeight);const g=ct.createRadialGradient(innerWidth*.5,innerHeight*.45,0,innerWidth*.5,innerHeight*.45,Math.max(innerWidth,innerHeight)*.8);g.addColorStop(0,'rgba('+r+',.24)');g.addColorStop(.5,'rgba('+r+',.05)');g.addColorStop(1,'rgba(0,0,0,.95)');ct.fillStyle=g;ct.fillRect(0,0,innerWidth,innerHeight);for(let i=0;i<9;i++){const x=innerWidth/2+Math.cos(t*.15+i)*innerWidth*(.12+i*.035),y=innerHeight/2+Math.sin(t*.2+i)*innerHeight*(.1+i*.025),q=80+Math.sin(t*1.4+i)*35;const b=ct.createRadialGradient(x,y,0,x,y,q);b.addColorStop(0,'rgba('+r+',.17)');b.addColorStop(1,'rgba('+r+',0)');ct.fillStyle=b;ct.beginPath();ct.arc(x,y,q,0,7);ct.fill()}raf=requestAnimationFrame(draw)}
 function toggle(){on=!on;document.body.classList.toggle('cinematic-mode',on);$('cinematicVisualStage')?.classList.toggle('active',on);if(on){cancelAnimationFrame(raf);draw()}else cancelAnimationFrame(raf)}
-function bind(){$('youtubePlaylistSettingsBtn')?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openPL()});$('youtubePlaylistModalClose')?.addEventListener('click',()=>$('youtubePlaylistModal')?.classList.add('hidden'));$('youtubePlaylistSaveBtn')?.addEventListener('click',()=>loadPL($('youtubePlaylistInput').value));$('youtubePlaylistClearBtn')?.addEventListener('click',clearPL);$('lyricsBtn')?.addEventListener('click',lyrics);$('lyricsModalClose')?.addEventListener('click',()=>$('lyricsModal')?.classList.add('hidden'));$('lyricsSaveBtn')?.addEventListener('click',saveLyrics);$('lyricsClearBtn')?.addEventListener('click',clearLyrics);$('cinematicVisualsBtn')?.addEventListener('click',toggle);visual();setInterval(sync,700);const id=saved();if(id)setTimeout(()=>loadPL(id),2000)}
+function bind(){$('youtubePlaylistModalClose')?.addEventListener('click',()=>$('youtubePlaylistModal')?.classList.add('hidden'));$('youtubePlaylistSaveBtn')?.addEventListener('click',()=>loadPL($('youtubePlaylistInput').value));$('youtubePlaylistClearBtn')?.addEventListener('click',clearPL);$('lyricsBtn')?.addEventListener('click',lyrics);$('lyricsModalClose')?.addEventListener('click',()=>$('lyricsModal')?.classList.add('hidden'));$('lyricsSaveBtn')?.addEventListener('click',saveLyrics);$('lyricsClearBtn')?.addEventListener('click',clearLyrics);$('cinematicVisualsBtn')?.addEventListener('click',toggle);visual();setInterval(sync,700);const id=saved();if(id)setTimeout(()=>loadPL(id),2000)}
 document.readyState==='loading'?document.addEventListener('DOMContentLoaded',bind):bind();
 })();
