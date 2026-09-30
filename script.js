@@ -216,7 +216,7 @@ function initApp() {
   initSidebarCollapse();
 
   // Show player bar (hidden by default until first play)
-  DOM.playerBar.style.display = 'flex';
+  DOM.playerBar.style.display = 'grid';
 
   // Welcome toast
   setTimeout(() => showToast('Welcome to SangeetHub! 🎵', 'info'), 500);
@@ -3373,257 +3373,92 @@ window.navigateTo = navigateTo;
      ========================================================== */
 
   function bindYouTubeControls() {
+    const playerBar = getElement('playerBar');
 
-    /*
-     * Play / pause
-     */
-    bind(
-      'playBtn',
-      'click',
-      youtubePlayPause
-    );
+    if (playerBar && !playerBar.dataset.youtubeControlsBound) {
+      playerBar.dataset.youtubeControlsBound = '1';
 
-    bind(
-      'fsPlayBtn',
-      'click',
-      youtubePlayPause
-    );
+      playerBar.addEventListener('click', event => {
+        const button = event.target.closest('button');
+        if (!button) return;
 
-
-    /*
-     * Next
-     */
-    bind(
-      'nextBtn',
-      'click',
-      youtubeNext
-    );
-
-    bind(
-      'fsNextBtn',
-      'click',
-      youtubeNext
-    );
-
-
-    /*
-     * Previous
-     */
-    bind(
-      'prevBtn',
-      'click',
-      youtubePrevious
-    );
-
-    bind(
-      'fsPrevBtn',
-      'click',
-      youtubePrevious
-    );
-
-
-    /*
-     * Shuffle
-     */
-    bind(
-      'shuffleBtn',
-      'click',
-      toggleYouTubeShuffle
-    );
-
-    bind(
-      'fsShuffleBtn',
-      'click',
-      toggleYouTubeShuffle
-    );
-
-
-    /*
-     * Repeat
-     */
-    bind(
-      'repeatBtn',
-      'click',
-      toggleYouTubeRepeat
-    );
-
-    bind(
-      'fsRepeatBtn',
-      'click',
-      toggleYouTubeRepeat
-    );
-
-
-    /*
-     * Mute
-     */
-    bind(
-      'muteBtn',
-      'click',
-      toggleYouTubeMute
-    );
-
-
-    /*
-     * Volume
-     */
-    const volume =
-      getElement(
-        'volumeRange'
-      );
-
-    if (volume) {
-
-      volume.addEventListener(
-        'input',
-        event => {
-
-          setYouTubeVolume(
-            event.target.value
-          );
-
+        switch (button.id) {
+          case 'playBtn':
+            youtubePlayPause();
+            break;
+          case 'nextBtn':
+            youtubeNext();
+            break;
+          case 'prevBtn':
+            youtubePrevious();
+            break;
+          case 'shuffleBtn':
+            toggleYouTubeShuffle();
+            break;
+          case 'repeatBtn':
+            toggleYouTubeRepeat();
+            break;
+          case 'muteBtn':
+            toggleYouTubeMute();
+            break;
+          case 'youtubePlaylistSettingsBtn':
+            event.preventDefault();
+            event.stopPropagation();
+            openYouTubePlaylistModal();
+            break;
         }
-      );
+      });
+
+      playerBar.addEventListener('input', event => {
+        if (event.target.id === 'volumeRange') {
+          setYouTubeVolume(event.target.value);
+        }
+      });
+
+      const progress = getElement('progressTrack');
+      if (progress) {
+        progress.addEventListener('click', event => {
+          seekYouTube(event, 'progressTrack');
+        });
+        initYouTubeProgressDragging('progressTrack');
+      }
     }
 
+    // Fullscreen controls use their own IDs because they live outside playerBar.
+    bind('fsPlayBtn', 'click', youtubePlayPause);
+    bind('fsNextBtn', 'click', youtubeNext);
+    bind('fsPrevBtn', 'click', youtubePrevious);
+    bind('fsShuffleBtn', 'click', toggleYouTubeShuffle);
+    bind('fsRepeatBtn', 'click', toggleYouTubeRepeat);
+    bind('fsVolume', 'input', event => setYouTubeVolume(event.target.value));
 
-    const fsVolume =
-      getElement(
-        'fsVolume'
-      );
-
-    if (fsVolume) {
-
-      fsVolume.addEventListener(
-        'input',
-        event => {
-
-          setYouTubeVolume(
-            event.target.value
-          );
-
-        }
-      );
+    const fsProgress = getElement('fsProgressTrack');
+    if (fsProgress) {
+      bind('fsProgressTrack', 'click', event => seekYouTube(event, 'fsProgressTrack'));
+      initYouTubeProgressDragging('fsProgressTrack');
     }
 
+    bind('youtubePlaylistModalClose', 'click', closeYouTubePlaylistModal);
+    bind('youtubePlaylistSaveBtn', 'click', saveYouTubePlaylistFromModal);
+    bind('youtubePlaylistClearBtn', 'click', clearYouTubePlaylist);
 
-    /*
-     * Progress
-     */
-    bind(
-      'progressTrack',
-      'click',
-      event =>
-        seekYouTube(
-          event,
-          'progressTrack'
-        )
-    );
+    if (!document.documentElement.dataset.youtubeKeyboardBound) {
+      document.documentElement.dataset.youtubeKeyboardBound = '1';
 
-    bind(
-      'fsProgressTrack',
-      'click',
-      event =>
-        seekYouTube(
-          event,
-          'fsProgressTrack'
-        )
-    );
+      document.addEventListener('keydown', event => {
+        const tag = document.activeElement?.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA') return;
 
-    initYouTubeProgressDragging('progressTrack');
-    initYouTubeProgressDragging('fsProgressTrack');
-
-
-    /*
-     * YouTube playlist settings
-     */
-    const youtubeSettingsButton =
-      getElement('youtubePlaylistSettingsBtn');
-
-    if (youtubeSettingsButton) {
-      youtubeSettingsButton.onclick = function (event) {
-        event.preventDefault();
-        event.stopPropagation();
-        openYouTubePlaylistModal();
-      };
-    }
-
-
-    bind(
-      'youtubePlaylistModalClose',
-      'click',
-      closeYouTubePlaylistModal
-    );
-
-
-    bind(
-      'youtubePlaylistSaveBtn',
-      'click',
-      saveYouTubePlaylistFromModal
-    );
-
-
-    bind(
-      'youtubePlaylistClearBtn',
-      'click',
-      clearYouTubePlaylist
-    );
-
-
-    /*
-     * Keyboard shortcuts
-     */
-    document.addEventListener(
-      'keydown',
-      event => {
-
-        /*
-         * Do not trigger shortcuts while typing.
-         */
-        const tag =
-          document.activeElement
-            ?.tagName;
-
-        if (
-          tag === 'INPUT' ||
-          tag === 'TEXTAREA'
-        ) {
-          return;
-        }
-
-        /*
-         * Space = play / pause
-         */
-        if (
-          event.code === 'Space'
-        ) {
-
+        if (event.code === 'Space') {
           event.preventDefault();
-
           youtubePlayPause();
-        }
-
-        /*
-         * Arrow right = next
-         */
-        if (
-          event.code ===
-          'ArrowRight'
-        ) {
+        } else if (event.code === 'ArrowRight') {
           youtubeNext();
-        }
-
-        /*
-         * Arrow left = previous
-         */
-        if (
-          event.code ===
-          'ArrowLeft'
-        ) {
+        } else if (event.code === 'ArrowLeft') {
           youtubePrevious();
         }
-      }
-    );
+      });
+    }
   }
 
 
@@ -3854,6 +3689,9 @@ window.navigateTo = navigateTo;
 
     loadPlaylist:
       loadYouTubePlaylist,
+
+    togglePlay:
+      youtubePlayPause,
 
     play:
       () => {
