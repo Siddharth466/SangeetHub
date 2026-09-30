@@ -1931,3 +1931,177 @@ body.cinematic-mode .page-content{position:relative;z-index:1}
 @media(max-width:768px){
   #playerBar.player-bar{padding-bottom:max(7px,env(safe-area-inset-bottom));}
 }
+
+/* ═════════════════════════════════════════════════════════════
+   SANGEETHUB — PLAYER BAR 4.0
+   A single, clear control surface for YouTube playback.
+   ═════════════════════════════════════════════════════════════ */
+#playerBar.player-bar{
+  position:fixed;
+  left:16px;
+  right:16px;
+  bottom:16px;
+  z-index:10000;
+  width:auto;
+  height:auto;
+  min-height:82px;
+  padding:12px 16px;
+  display:grid;
+  grid-template-columns:minmax(220px,1fr) minmax(360px,1.6fr) minmax(260px,1fr);
+  align-items:center;
+  gap:20px;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:22px;
+  background:rgba(10,12,20,.92);
+  box-shadow:0 18px 55px rgba(0,0,0,.48),0 0 0 1px rgba(139,92,246,.05) inset;
+  backdrop-filter:blur(26px) saturate(150%);
+  -webkit-backdrop-filter:blur(26px) saturate(150%);
+}
+#playerBar .player-nowplaying{
+  min-width:0;
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+#playerBar .player-cover-wrap{
+  flex:0 0 54px;
+  width:54px;
+  height:54px;
+  border-radius:13px;
+  overflow:hidden;
+  box-shadow:0 7px 22px rgba(0,0,0,.35);
+}
+#playerBar .player-cover{width:100%;height:100%;object-fit:cover}
+#playerBar .player-track-info{min-width:0;flex:1}
+#playerBar .player-track-title{
+  margin:0;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  font-size:.88rem;
+  font-weight:750;
+}
+#playerBar .player-track-artist{
+  margin:4px 0 0;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  font-size:.72rem;
+  opacity:.58;
+}
+#playerBar .player-like-btn{
+  flex:0 0 34px;
+  width:34px;height:34px;
+  border:0;background:transparent;color:rgba(255,255,255,.65);
+  cursor:pointer;border-radius:50%;
+}
+#playerBar .player-controls-center{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+#playerBar .player-control-btns{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:7px;
+}
+#playerBar .ctrl-btn{
+  flex:0 0 36px;
+  width:36px;height:36px;
+  display:grid;place-items:center;
+  border-radius:50%;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.055);
+  color:rgba(255,255,255,.78);
+  cursor:pointer;
+}
+#playerBar .ctrl-btn.active{
+  color:#fff;
+  background:rgba(139,92,246,.22);
+  border-color:rgba(139,92,246,.5);
+  box-shadow:0 0 18px rgba(139,92,246,.15);
+}
+#playerBar #playBtn{
+  flex-basis:46px;width:46px;height:46px;
+  color:#111;background:#fff;border-color:#fff;
+  font-size:1rem;
+}
+#playerBar #playBtn:hover{transform:scale(1.06);background:#fff}
+#playerBar .player-progress{
+  min-width:0;
+  display:grid;
+  grid-template-columns:34px minmax(80px,1fr) 34px;
+  align-items:center;
+  gap:8px;
+}
+#playerBar .progress-track{
+  position:relative;
+  width:100%;height:5px;
+  cursor:pointer;
+  border-radius:999px;
+  background:rgba(255,255,255,.13);
+  touch-action:none;
+}
+#playerBar .progress-fill{
+  position:absolute;left:0;top:0;height:100%;
+  border-radius:inherit;
+  background:linear-gradient(90deg,#8b5cf6,#c4b5fd);
+}
+#playerBar .progress-thumb{
+  position:absolute;top:50%;
+  width:10px;height:10px;
+  border-radius:50%;background:#fff;
+  transform:translate(-50%,-50%);
+  box-shadow:0 2px 10px rgba(0,0,0,.5);
+}
+#playerBar .time-label{
+  font-size:.62rem;
+  opacity:.55;
+  font-variant-numeric:tabular-nums;
+}
+#playerBar .player-extras{
+  min-width:0;
+  display:flex;
+  justify-content:flex-end;
+  align-items:center;
+  gap:5px;
+}
+#playerBar .player-visualizer{display:flex;margin:0 5px}
+#playerBar .volume-group{
+  display:flex;align-items:center;gap:5px;
+  min-width:100px;
+}
+#playerBar .volume-track{position:relative;width:70px;height:5px}
+#playerBar .volume-range{
+  position:absolute;inset:0;width:100%;
+  cursor:pointer;
+}
+@media(max-width:1100px){
+  #playerBar.player-bar{
+    grid-template-columns:minmax(180px,1fr) minmax(300px,1.4fr) auto;
+    gap:12px;
+  }
+  #playerBar .player-extras .player-visualizer{display:none}
+  #playerBar .player-extras .ctrl-btn:nth-of-type(3){display:none}
+}
+@media(max-width:760px){
+  #playerBar.player-bar{
+    left:7px;right:7px;bottom:7px;
+    min-height:108px;
+    padding:10px 11px;
+    border-radius:18px;
+    grid-template-columns:1fr auto;
+    grid-template-rows:auto auto;
+    gap:7px 10px;
+  }
+  #playerBar .player-nowplaying{grid-column:1;grid-row:1}
+  #playerBar .player-controls-center{grid-column:1/-1;grid-row:2}
+  #playerBar .player-extras{grid-column:2;grid-row:1}
+  #playerBar .player-extras > *{display:none!important}
+  #playerBar .player-control-btns{gap:4px}
+  #playerBar .ctrl-btn{width:33px;height:33px;flex-basis:33px}
+  #playerBar #playBtn{width:41px;height:41px;flex-basis:41px}
+  #playerBar .player-progress{grid-template-columns:29px minmax(70px,1fr) 29px}
+}
