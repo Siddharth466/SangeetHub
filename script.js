@@ -2043,7 +2043,7 @@ window.navigateTo = navigateTo;
 
   let youtubeShuffle = false;
 
-  let youtubeRepeat = false;
+  let youtubeRepeat = 0; // 0=off, 1=all, 2=one
 
   let youtubeLastVideoId = null;
 
@@ -2981,33 +2981,22 @@ window.navigateTo = navigateTo;
     updatePlayButton(false);
     updateVisualizer(false);
 
-    if (youtubeRepeat) {
-
-      youtubePlayer.seekTo(
-        0,
-        true
-      );
-
+    if (youtubeRepeat === 2) {
+      youtubePlayer.seekTo(0, true);
       youtubePlayer.playVideo();
-
       return;
     }
 
-    /*
-     * Normally the YouTube playlist automatically
-     * advances. We only manually advance when needed.
-     */
+    if (youtubeRepeat === 0 && youtubeCurrentIndex >= youtubePlaylist.length - 1) {
+      return;
+    }
+
+    // Repeat-all or normal playlist progression.
     setTimeout(() => {
-
-      const state =
-        youtubePlayer.getPlayerState();
-
-      if (
-        state === YT.PlayerState.ENDED
-      ) {
+      if (!playbackController.isActive('youtube')) return;
+      if (youtubePlayer.getPlayerState() === YT.PlayerState.ENDED) {
         youtubeNext();
       }
-
     }, 200);
   }
 
@@ -3051,8 +3040,7 @@ window.navigateTo = navigateTo;
      ========================================================== */
 
   function toggleYouTubeRepeat() {
-    youtubeRepeat =
-      !youtubeRepeat;
+    youtubeRepeat = (youtubeRepeat + 1) % 3;
 
     const buttons = [
       getElement('repeatBtn'),
@@ -3060,23 +3048,18 @@ window.navigateTo = navigateTo;
     ];
 
     buttons.forEach(button => {
-
-      if (!button) {
-        return;
-      }
-
-      button.classList.toggle(
-        'active',
-        youtubeRepeat
+      if (!button) return;
+      button.classList.toggle('active', youtubeRepeat > 0);
+      button.setAttribute('data-repeat-mode', String(youtubeRepeat));
+      button.setAttribute(
+        'title',
+        youtubeRepeat === 0 ? 'Repeat off' :
+        youtubeRepeat === 1 ? 'Repeat all' : 'Repeat one'
       );
-
     });
 
-    ytToast(
-      youtubeRepeat
-        ? 'Repeat enabled.'
-        : 'Repeat disabled.'
-    );
+    const labels = ['Repeat off', 'Repeat all 🔁', 'Repeat one 🔂'];
+    ytToast(labels[youtubeRepeat]);
   }
 
 
