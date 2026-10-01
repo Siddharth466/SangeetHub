@@ -2229,6 +2229,15 @@ window.navigateTo = navigateTo;
     playlistValue,
     showToast = true
   ) {
+    // YouTube becomes the active engine: stop the local HTML5 engine first.
+    try {
+      const localAudio = document.getElementById('audioEngine');
+      if (localAudio) {
+        localAudio.pause();
+        localAudio.currentTime = 0;
+      }
+    } catch (error) {}
+
     const playlistId =
       extractYouTubePlaylistId(
         playlistValue
@@ -2574,6 +2583,12 @@ window.navigateTo = navigateTo;
       return;
     }
 
+    // Keep the local player silent while YouTube changes tracks.
+    try {
+      const localAudio = document.getElementById('audioEngine');
+      if (localAudio) localAudio.pause();
+    } catch (error) {}
+
     if (
       youtubeShuffle &&
       youtubePlaylist.length > 1
@@ -2617,6 +2632,11 @@ window.navigateTo = navigateTo;
       ytToast('Connect a YouTube playlist first.');
       return;
     }
+
+    try {
+      const localAudio = document.getElementById('audioEngine');
+      if (localAudio) localAudio.pause();
+    } catch (error) {}
 
     try {
 
