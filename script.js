@@ -2069,6 +2069,67 @@ window.navigateTo = navigateTo;
      PLAYLIST ID EXTRACTION
      ========================================================== */
 
+  function extractYouTubeVideoId(value) {
+    if (!value) return null;
+    value = String(value).trim();
+
+    if (/^[A-Za-z0-9_-]{11}$/.test(value)) return value;
+
+    try {
+      const url = new URL(value);
+      const host = url.hostname.replace(/^www\./, '').replace(/^music\./, '');
+
+      if (host === 'youtu.be') {
+        const id = url.pathname.split('/').filter(Boolean)[0];
+        return /^[A-Za-z0-9_-]{11}$/.test(id || '') ? id : null;
+      }
+
+      if (host === 'youtube.com') {
+        const id = url.searchParams.get('v');
+        if (/^[A-Za-z0-9_-]{11}$/.test(id || '')) return id;
+        const parts = url.pathname.split('/').filter(Boolean);
+        const candidate = parts[1] || parts[0];
+        return /^[A-Za-z0-9_-]{11}$/.test(candidate || '') ? candidate : null;
+      }
+    } catch (error) {
+      console.warn('[SangeetHub] Invalid YouTube video URL:', error);
+    }
+
+    const match = value.match(/(?:v=|youtu\.be\/|\/shorts\/|\/embed\/)([A-Za-z0-9_-]{11})/);
+    return match ? match[1] : null;
+  }
+
+  function loadYouTubeVideo(videoValue, showToast = true) {
+    const videoId = extractYouTubeVideoId(videoValue);
+
+    if (!videoId) {
+      ytToast('Invalid YouTube video URL or ID.');
+      return false;
+    }
+
+    if (!youtubePlayer || !youtubePlayerReady) {
+      ytToast('YouTube player is still loading.');
+      return false;
+    }
+
+    playbackController.claim('youtube');
+    youtubePlaylist = [{ id: videoId, index: 0 }];
+    youtubeCurrentIndex = 0;
+    youtubeLastVideoId = '';
+    
+    try {
+      youtubePlayer.loadVideoById(videoId);
+      if (showToast) ytToast('YouTube track loaded.');
+      updatePlaylistStatus('Direct YouTube track is playing.');
+      closeYouTubePlaylistModal();
+      return true;
+    } catch (error) {
+      console.error('[SangeetHub] Direct YouTube playback failed:', error);
+      ytToast('Could not load this YouTube track.');
+      return false;
+    }
+  }
+
   function extractYouTubePlaylistId(value) {
     if (!value) {
       return null;
@@ -3730,6 +3791,10 @@ window.navigateTo = navigateTo;
 
     bind('youtubePlaylistModalClose', 'click', closeYouTubePlaylistModal);
     bind('youtubePlaylistSaveBtn', 'click', saveYouTubePlaylistFromModal);
+    bind('youtubeDirectPlayBtn', 'click', () => {
+      const input = getElement('youtubeDirectInput');
+      if (input) loadYouTubeVideo(input.value, true);
+    });
     bind('youtubePlaylistClearBtn', 'click', clearYouTubePlaylist);
 
     // Keyboard playback is centralized in initPlayerShortcuts().
@@ -3964,6 +4029,19 @@ window.navigateTo = navigateTo;
 
     loadPlaylist:
       loadYouTubePlaylist,
+
+    loadVideo:
+      loadYouTubeVideo,
+
+    setVolume:
+      setYouTubeVolume,
+
+    isPlaying:
+      () => {
+        if (!youtubePlayer || !youtubePlayerReady || !window.YT) return false;
+        const ps = youtubePlayer.getPlayerState();
+        return ps === YT.PlayerState.PLAYING || ps === YT.PlayerState.BUFFERING;
+      },
 
     togglePlay:
       youtubePlayPause,
