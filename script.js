@@ -85,6 +85,8 @@ const state = {
   theme: localStorage.getItem('sh_theme') || 'dark',
   totalPlayed: parseInt(localStorage.getItem('sh_totalPlayed') || '0'),
   totalMinutes: parseInt(localStorage.getItem('sh_totalMinutes') || '0'),
+  sleepTimer: null,
+  lastVolume: parseFloat(localStorage.getItem('sh_volume') || '0.8'),
 };
 
 // ═══════════════════════════════════════════════════════════
@@ -1214,6 +1216,12 @@ function initPlayer() {
 
   DOM.fullscreenPlayerBtn?.addEventListener('click', openFullscreen);
   DOM.fsCloseBtn?.addEventListener('click', closeFullscreen);
+
+  // Player quality-of-life features.
+  initPlayerShortcuts();
+  initMediaSession();
+  setVolume(state.lastVolume);
+  updatePlayerUI();
 }
 
 function playSong(index) {
@@ -1335,6 +1343,7 @@ function updateRepeatUI() {
 function setVolume(v) {
   state.player.volume = Math.max(0, Math.min(1, v));
   if (DOM.audio) DOM.audio.volume = state.player.volume;
+  try { localStorage.setItem('sh_volume', String(state.player.volume)); } catch (e) {}
   updateVolumeUI(state.player.volume);
 }
 
@@ -1362,6 +1371,96 @@ function currentSong() {
   return idx >= 0 ? state.player.queue[idx] : null;
 }
 
+function initPlayerShortcuts() {
+  if (window.__sangeetShortcutsBound) return;
+  window.__sangeetShortcutsBound = true;
+
+  document.addEventListener('keydown', event => {
+    const tag = document.activeElement?.tagName;
+    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag) || document.activeElement?.isContentEditable) return;
+    if (event.ctrlKey || event.altKey || event.metaKey) return;
+
+    switch (event.code) {
+      case 'Space':
+        event.preventDefault();
+        togglePlay();
+        break;
+      case 'ArrowRight':
+        if (event.shiftKey) nextSong();
+        else seekBy(5);
+        break;
+      case 'ArrowLeft':
+        if (event.shiftKey) prevSong();
+        else seekBy(-5);
+        break;
+      case 'ArrowUp':
+        event.preventDefault();
+        setVolume(state.player.volume + 0.05);
+        break;
+      case 'ArrowDown':
+        event.preventDefault();
+        setVolume(state.player.volume - 0.05);
+        break;
+      case 'KeyM':
+        toggleMute();
+        break;
+      case 'KeyS':
+        toggleShuffle();
+        break;
+      case 'KeyR':
+        cycleRepeat();
+        break;
+    }
+  });
+}
+
+function seekBy(seconds) {
+  const audio = DOM.audio;
+  if (!audio || !Number.isFinite(audio.duration)) return;
+  audio.currentTime = Math.max(0, Math.min(audio.duration, audio.currentTime + seconds));
+}
+
+function initMediaSession() {
+  if (!('mediaSession' in navigator)) return;
+
+  navigator.mediaSession.setActionHandler('play', () => togglePlay());
+  navigator.mediaSession.setActionHandler('pause', () => togglePlay());
+  navigator.mediaSession.setActionHandler('previoustrack', () => prevSong());
+  navigator.mediaSession.setActionHandler('nexttrack', () => nextSong());
+  navigator.mediaSession.setActionHandler('seekbackward', () => seekBy(-10));
+  navigator.mediaSession.setActionHandler('seekforward', () => seekBy(10));
+}
+
+function updateMediaSession(song) {
+  if (!('mediaSession' in navigator) || !song) return;
+  if ('MediaMetadata' in window) {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: song.title || 'SangeetHub',
+      artist: song.artist || 'Unknown artist',
+      album: song.album || 'SangeetHub',
+      artwork: song.cover ? [{ src: song.cover, sizes: '512x512', type: 'image/png' }] : []
+    });
+  }
+}
+
+function setSleepTimer(minutes) {
+  if (state.sleepTimer) clearTimeout(state.sleepTimer);
+  if (!minutes) {
+    state.sleepTimer = null;
+    showToast('Sleep timer cancelled', 'info');
+    return;
+  }
+  state.sleepTimer = setTimeout(() => {
+    try { DOM.audio?.pause(); } catch (e) {}
+    try { window.SangeetHubYouTube?.pause?.(); } catch (e) {}
+    state.player.isPlaying = false;
+    updatePlayPauseUI();
+    showToast('Sleep timer ended 🌙', 'info');
+    state.sleepTimer = null;
+  }, minutes * 60 * 1000);
+  showToast(`Sleep timer set for ${minutes} min`, 'info');
+}
+
 function updatePlayerUI() {
   const song = currentSong();
   if (!song) return;
@@ -1378,6 +1477,7 @@ function updatePlayerUI() {
 
   updatePlayPauseUI();
   updateLikeButtons();
+  updateMediaSession(song);
 
   // Vinyl spin
   const fsVinyl = document.querySelector('.fs-vinyl');
