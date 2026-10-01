@@ -2310,6 +2310,24 @@ window.navigateTo = navigateTo;
     youtubePlayer =
       event.target;
 
+    playbackController.registerYouTube({
+      pause: () => {
+        if (youtubePlayer && youtubePlayerReady) youtubePlayer.pauseVideo();
+      },
+      play: () => {
+        if (youtubePlayer && youtubePlayerReady) youtubePlayer.playVideo();
+      },
+      togglePlay: youtubePlayPause,
+      next: youtubeNext,
+      previous: youtubePrevious,
+      setVolume: setYouTubeVolume,
+      isPlaying: () => {
+        if (!youtubePlayer || !youtubePlayerReady || !window.YT) return false;
+        const ps = youtubePlayer.getPlayerState();
+        return ps === YT.PlayerState.PLAYING || ps === YT.PlayerState.BUFFERING;
+      }
+    });
+
     youtubePlayer.setVolume(
       youtubeVolume
     );
@@ -2337,9 +2355,18 @@ window.navigateTo = navigateTo;
      ========================================================== */
 
   function onYouTubeStateChange(event) {
-    if (!window.YT) {
-      return;
+    if (!window.YT) return;
+
+    // A YouTube callback is allowed to affect global playback state only
+    // after YouTube has claimed the central controller.
+    if (
+      event.data === YT.PlayerState.PLAYING ||
+      event.data === YT.PlayerState.BUFFERING
+    ) {
+      playbackController.claim('youtube');
     }
+
+    if (!playbackController.isActive('youtube')) return;
 
     switch (event.data) {
 
@@ -2432,7 +2459,9 @@ window.navigateTo = navigateTo;
     playlistValue,
     showToast = true
   ) {
-    // YouTube becomes the active engine: stop the local HTML5 engine first.
+    // Validate first; only claim YouTube after the playlist input is valid.
+    // This prevents a failed connection from stealing the active engine.
+
     try {
       const localAudio = document.getElementById('audioEngine');
       if (localAudio) {
@@ -2464,6 +2493,8 @@ window.navigateTo = navigateTo;
 
       return false;
     }
+
+    playbackController.claim('youtube');
 
     savePlaylistId(
       playlistId
@@ -2761,6 +2792,8 @@ window.navigateTo = navigateTo;
 
     if (playPauseLock) return;
 
+    playbackController.claim('youtube');
+
     const playerState = youtubePlayer.getPlayerState();
 
     playPauseLock = true;
@@ -2785,6 +2818,8 @@ window.navigateTo = navigateTo;
       ytToast('Connect a YouTube playlist first.');
       return;
     }
+
+    playbackController.claim('youtube');
 
     // Keep the local player silent while YouTube changes tracks.
     try {
@@ -2836,6 +2871,8 @@ window.navigateTo = navigateTo;
       return;
     }
 
+    playbackController.claim('youtube');
+
     try {
       const localAudio = document.getElementById('audioEngine');
       if (localAudio) localAudio.pause();
@@ -2878,8 +2915,9 @@ window.navigateTo = navigateTo;
      ========================================================== */
 
   function handleYouTubeEnded() {
-    updatePlayButton(false);
+    if (!playbackController.isActive('youtube')) return;
 
+    updatePlayButton(false);
     updateVisualizer(false);
 
     if (youtubeRepeat) {
@@ -3650,25 +3688,9 @@ window.navigateTo = navigateTo;
         const button = event.target.closest('button');
         if (!button) return;
 
+        // Shared playback buttons are handled by the central player.
+        // This listener only owns YouTube-specific UI actions.
         switch (button.id) {
-          case 'playBtn':
-            youtubePlayPause();
-            break;
-          case 'nextBtn':
-            youtubeNext();
-            break;
-          case 'prevBtn':
-            youtubePrevious();
-            break;
-          case 'shuffleBtn':
-            toggleYouTubeShuffle();
-            break;
-          case 'repeatBtn':
-            toggleYouTubeRepeat();
-            break;
-          case 'muteBtn':
-            toggleYouTubeMute();
-            break;
           case 'youtubePlaylistSettingsBtn':
             event.preventDefault();
             event.stopPropagation();
@@ -3710,23 +3732,8 @@ window.navigateTo = navigateTo;
     bind('youtubePlaylistSaveBtn', 'click', saveYouTubePlaylistFromModal);
     bind('youtubePlaylistClearBtn', 'click', clearYouTubePlaylist);
 
-    if (!document.documentElement.dataset.youtubeKeyboardBound) {
-      document.documentElement.dataset.youtubeKeyboardBound = '1';
-
-      document.addEventListener('keydown', event => {
-        const tag = document.activeElement?.tagName;
-        if (tag === 'INPUT' || tag === 'TEXTAREA') return;
-
-        if (event.code === 'Space') {
-          event.preventDefault();
-          youtubePlayPause();
-        } else if (event.code === 'ArrowRight') {
-          youtubeNext();
-        } else if (event.code === 'ArrowLeft') {
-          youtubePrevious();
-        }
-      });
-    }
+    // Keyboard playback is centralized in initPlayerShortcuts().
+    // Do not install a second YouTube keyboard listener here.
   }
 
 
@@ -3967,6 +3974,7 @@ window.navigateTo = navigateTo;
           youtubePlayer &&
           youtubePlayerReady
         ) {
+          playbackController.claim('youtube');
           youtubePlayer.playVideo();
         }
       },
