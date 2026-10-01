@@ -1218,34 +1218,71 @@ function initPlayer() {
 
 function playSong(index) {
   if (index < 0 || index >= state.player.queue.length) return;
-  state.player.currentSongIndex = index;
   const song = state.player.queue[index];
 
-  DOM.audio.src = song.src;
-  DOM.audio.load();
-  DOM.audio.play().catch(() => { });
+  // SangeetHub has two playback engines (local HTML5 audio + YouTube).
+  // Never allow them to run at the same time.
+  try { window.SangeetHubYouTube?.pause?.(); } catch (e) {}
 
-  state.player.isPlaying = true;
+  const audio = DOM.audio;
+  if (!audio) return;
+
+  // Stop the previous local track before replacing its source.
+  audio.pause();
+  audio.currentTime = 0;
+
+  state.player.currentSongIndex = index;
+  state.player.isPlaying = false;
+
+  audio.src = song.src;
+  audio.load();
+
+  const playPromise = audio.play();
+  if (playPromise?.then) {
+    playPromise.then(() => {
+      state.player.isPlaying = true;
+      updatePlayerUI();
+    }).catch(() => {
+      state.player.isPlaying = false;
+      updatePlayPauseUI();
+      showToast('Tap play to start this track', 'info');
+    });
+  }
+
   updatePlayerUI();
   addToHistory(song.id);
   trackPlay(song.id);
   updateQueue();
-  // Update vinyl on hero
+
   if (DOM.vinylCoverImg) DOM.vinylCoverImg.src = song.cover;
 }
 
 function togglePlay() {
   const audio = DOM.audio;
   if (!audio) return;
-  if (state.player.currentSongIndex < 0) { playSong(0); return; }
+
+  // If YouTube is currently active, its own control layer owns play/pause.
+  const yt = window.SangeetHubYouTube;
+  if (yt?.isPlaying?.()) {
+    yt.togglePlay?.();
+    return;
+  }
+
+  if (state.player.currentSongIndex < 0) {
+    playSong(0);
+    return;
+  }
+
   if (audio.paused) {
-    audio.play().catch(() => { });
-    state.player.isPlaying = true;
+    audio.play().then(() => {
+      state.player.isPlaying = true;
+      updatePlayPauseUI();
+    }).catch(() => {});
   } else {
     audio.pause();
     state.player.isPlaying = false;
+    updatePlayPauseUI();
   }
-  updatePlayPauseUI();
 }
 
 function nextSong() {
