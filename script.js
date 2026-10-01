@@ -65,6 +65,54 @@ const TESTIMONIALS = [
 // APP STATE
 // ═══════════════════════════════════════════════════════════
 
+
+// ═══════════════════════════════════════════════════════════
+// CENTRAL PLAYBACK CONTROLLER
+// One authoritative engine: local | youtube | null.
+// Every engine must claim ownership before it can affect UI/playback.
+// ═══════════════════════════════════════════════════════════
+const playbackController = {
+  activeEngine: null,
+  session: 0,
+  youtubeApi: null,
+
+  claim(engine) {
+    if (!['local', 'youtube', null].includes(engine)) return this.session;
+    if (this.activeEngine === engine) return this.session;
+
+    this.activeEngine = engine;
+    this.session += 1;
+
+    if (engine === 'local') {
+      try { this.youtubeApi?.pause?.(); } catch (e) {}
+    } else if (engine === 'youtube') {
+      try {
+        DOM?.audio?.pause?.();
+        if (DOM?.audio) DOM.audio.currentTime = 0;
+      } catch (e) {}
+    } else {
+      try { DOM?.audio?.pause?.(); } catch (e) {}
+      try { this.youtubeApi?.pause?.(); } catch (e) {}
+    }
+
+    return this.session;
+  },
+
+  isActive(engine) {
+    return this.activeEngine === engine;
+  },
+
+  token() {
+    return this.session;
+  },
+
+  registerYouTube(api) {
+    this.youtubeApi = api;
+  }
+};
+
+window.SangeetHubPlayback = playbackController;
+
 const state = {
   currentPage: 'landing',
   player: {
@@ -1191,15 +1239,19 @@ function renderAdminTab(tab) {
 function initPlayer() {
   const audio = DOM.audio;
   if (!audio) return;
+  if (audio.dataset.sangeetBound === '1') return;
+  audio.dataset.sangeetBound = '1';
 
-  // YouTube is the primary playback engine. Keep the legacy audio element
-  // available as a fallback/data source, but do not bind the same controls twice.
   audio.volume = state.player.volume;
 
   audio.addEventListener('timeupdate', onTimeUpdate);
   audio.addEventListener('loadedmetadata', onMetaLoaded);
   audio.addEventListener('ended', onSongEnded);
-  audio.addEventListener('error', () => { showToast('Could not load audio file', 'warning'); nextSong(); });
+  audio.addEventListener('error', () => {
+    if (!playbackController.isActive('local')) return;
+    showToast('Could not load audio file', 'warning');
+    nextSong();
+  });
 
   DOM.playerLikeBtn?.addEventListener('click', () => {
     const song = currentSong();
@@ -1217,7 +1269,6 @@ function initPlayer() {
   DOM.fullscreenPlayerBtn?.addEventListener('click', openFullscreen);
   DOM.fsCloseBtn?.addEventListener('click', closeFullscreen);
 
-  // Player quality-of-life features.
   initPlayerShortcuts();
   initMediaSession();
   setVolume(state.lastVolume);
@@ -1227,35 +1278,20 @@ function initPlayer() {
 function playSong(index) {
   if (index < 0 || index >= state.player.queue.length) return;
   const song = state.player.queue[index];
-
-  // SangeetHub has two playback engines (local HTML5 audio + YouTube).
-  // Never allow them to run at the same time.
-  try { window.SangeetHubYouTube?.pause?.(); } catch (e) {}
-
   const audio = DOM.audio;
   if (!audio) return;
 
-  // Stop the previous local track before replacing its source.
+  const session = playbackController.claim('local');
   audio.pause();
   audio.currentTime = 0;
 
   state.player.currentSongIndex = index;
   state.player.isPlaying = false;
+  state.player.progress = 0;
+  state.player.duration = 0;
 
   audio.src = song.src;
   audio.load();
-
-  const playPromise = audio.play();
-  if (playPromise?.then) {
-    playPromise.then(() => {
-      state.player.isPlaying = true;
-      updatePlayerUI();
-    }).catch(() => {
-      state.player.isPlaying = false;
-      updatePlayPauseUI();
-      showToast('Tap play to start this track', 'info');
-    });
-  }
 
   updatePlayerUI();
   addToHistory(song.id);
@@ -1263,16 +1299,28 @@ function playSong(index) {
   updateQueue();
 
   if (DOM.vinylCoverImg) DOM.vinylCoverImg.src = song.cover;
+
+  const playPromise = audio.play();
+  if (playPromise?.then) {
+    playPromise.then(() => {
+      if (!playbackController.isActive('local') || playbackController.token() !== session) return;
+      state.player.isPlaying = true;
+      updatePlayPauseUI();
+    }).catch(() => {
+      if (!playbackController.isActive('local') || playbackController.token() !== session) return;
+      state.player.isPlaying = false;
+      updatePlayPauseUI();
+      showToast('Tap play to start this track', 'info');
+    });
+  }
 }
 
 function togglePlay() {
   const audio = DOM.audio;
-  if (!audio) return;
-
-  // If YouTube is currently active, its own control layer owns play/pause.
   const yt = window.SangeetHubYouTube;
-  if (yt?.isPlaying?.()) {
-    yt.togglePlay?.();
+
+  if (playbackController.isActive('youtube')) {
+    yt?.togglePlay?.();
     return;
   }
 
@@ -1282,7 +1330,9 @@ function togglePlay() {
   }
 
   if (audio.paused) {
+    const session = playbackController.claim('local');
     audio.play().then(() => {
+      if (!playbackController.isActive('local') || playbackController.token() !== session) return;
       state.player.isPlaying = true;
       updatePlayPauseUI();
     }).catch(() => {});
@@ -1294,11 +1344,17 @@ function togglePlay() {
 }
 
 function nextSong() {
+  if (playbackController.isActive('youtube')) {
+    window.SangeetHubYouTube?.next?.();
+    return;
+  }
+
   const q = state.player.queue;
   if (!q.length) return;
   let next;
-  if (state.player.isShuffle) {
-    next = Math.floor(Math.random() * q.length);
+  if (state.player.isShuffle && q.length > 1) {
+    do { next = Math.floor(Math.random() * q.length); }
+    while (next === state.player.currentSongIndex);
   } else {
     next = (state.player.currentSongIndex + 1) % q.length;
   }
@@ -1306,10 +1362,20 @@ function nextSong() {
 }
 
 function prevSong() {
+  if (playbackController.isActive('youtube')) {
+    window.SangeetHubYouTube?.previous?.();
+    return;
+  }
+
   const audio = DOM.audio;
-  if (audio && audio.currentTime > 3) { audio.currentTime = 0; return; }
+  if (audio && audio.currentTime > 3) {
+    audio.currentTime = 0;
+    return;
+  }
+
   const q = state.player.queue;
-  let prev = (state.player.currentSongIndex - 1 + q.length) % q.length;
+  if (!q.length) return;
+  const prev = (state.player.currentSongIndex - 1 + q.length) % q.length;
   playSong(prev);
 }
 
@@ -1343,6 +1409,9 @@ function updateRepeatUI() {
 function setVolume(v) {
   state.player.volume = Math.max(0, Math.min(1, v));
   if (DOM.audio) DOM.audio.volume = state.player.volume;
+  if (playbackController.isActive('youtube')) {
+    window.SangeetHubYouTube?.setVolume?.(state.player.volume * 100);
+  }
   try { localStorage.setItem('sh_volume', String(state.player.volume)); } catch (e) {}
   updateVolumeUI(state.player.volume);
 }
@@ -1364,6 +1433,40 @@ function toggleMute() {
   } else {
     setVolume(lastVolume);
   }
+}
+
+function onTimeUpdate() {
+  if (!playbackController.isActive('local') || !DOM.audio) return;
+  const duration = Number.isFinite(DOM.audio.duration) ? DOM.audio.duration : 0;
+  const current = DOM.audio.currentTime || 0;
+  state.player.duration = duration;
+  state.player.progress = duration ? (current / duration) * 100 : 0;
+  setProgressUI(state.player.progress, current, duration);
+}
+
+function onMetaLoaded() {
+  if (!playbackController.isActive('local') || !DOM.audio) return;
+  state.player.duration = Number.isFinite(DOM.audio.duration) ? DOM.audio.duration : 0;
+  setProgressUI(0, DOM.audio.currentTime || 0, state.player.duration);
+}
+
+function onSongEnded() {
+  if (!playbackController.isActive('local')) return;
+
+  state.player.isPlaying = false;
+
+  if (state.player.repeatMode === 2) {
+    DOM.audio.currentTime = 0;
+    DOM.audio.play().catch(() => {});
+    return;
+  }
+
+  if (state.player.repeatMode === 0 && state.player.currentSongIndex >= state.player.queue.length - 1) {
+    updatePlayPauseUI();
+    return;
+  }
+
+  nextSong();
 }
 
 function currentSong() {
