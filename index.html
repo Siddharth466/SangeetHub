@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-mood="default">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="SangeetHub — Premium music streaming platform. Experience music like never before with immersive ambient visuals, high-quality audio, and personalized playlists." />
+  <meta name="keywords" content="music streaming, online music player, playlists, artists, SangeetHub" />
+  <meta name="purpose" content="educational" />
+  <meta name="author" content="Siddharth Sharma" />
+  <meta name="robots" content="index, follow" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <meta name="theme-color" content="#7C3AED" />
+  <meta property="og:title" content="SangeetHub — Premium Music Streaming" />
+  <meta property="og:description" content="Stream millions of songs with stunning ambient mood lighting and premium audio quality." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://siddharth466.github.io/SangeetHub/" />
+  <title>SangeetHub — Premium Music Streaming</title>
+
+  <!-- FONTS -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- FONT AWESOME -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ═══════════════════════════════ AMBIENT BACKDROP ═══════════════════════════════ -->
+  <div id="ambientBackdrop" class="ambient-backdrop" aria-hidden="true">
+    <div class="ambient-orb orb-1"></div>
+    <div class="ambient-orb orb-2"></div>
+    <div class="ambient-orb orb-3"></div>
+    <div class="ambient-orb orb-4"></div>
+    <div class="ambient-noise"></div>
+    <canvas id="ambientCanvas" class="ambient-canvas"></canvas>
+  </div>
+
+  <!-- ═══════════════════════════════ LOADER ═══════════════════════════════ -->
+  <div id="loader" class="loader">
+    <div class="loader-inner">
+      <div class="loader-logo">
+        <div class="loader-disc-wrap">
+          <div class="loader-disc">
+            <div class="loader-disc-rings">
+              <div class="ring"></div>
+              <div class="ring"></div>
+              <div class="ring"></div>
+            </div>
+            <div class="loader-disc-center"></div>
+          </div>
+        </div>
+        <div class="loader-waves">
+          <span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span>
+        </div>
+      </div>
+      <h1 class="loader-title">SangeetHub</h1>
+      <p class="loader-sub">Curating your sonic universe...</p>
+      <div class="loader-progress"><div class="loader-progress-bar" id="loaderBar"></div></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ APP SHELL ═══════════════════════════════ -->
+  <div id="app" class="app hidden">
+
+    <!-- ═══ SIDEBAR ═══ -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="brand">
+          <div class="brand-icon">
+            <i class="fas fa-headphones"></i>
+          </div>
+          <span class="brand-name">SangeetHub</span>
+        </div>
+        <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-group">
+          <p class="nav-label">Main</p>
+          <ul class="nav-list">
+            <li class="nav-item active" data-page="landing" id="navLanding">
+              <div class="nav-icon"><i class="fas fa-house"></i></div>
+              <span>Home</span>
+              <div class="nav-active-dot"></div>
+            </li>
+            <li class="nav-item" data-page="app-home" id="navHome">
+              <div class="nav-icon"><i class="fas fa-compass"></i></div>
+              <span>Discover</span>
+              <div class="nav-active-dot"></div>
+            </li>
+            <li class="nav-item" data-page="explore" id="navExplore">
+              <div class="nav-icon"><i class="fas fa-fire"></i></div>
+              <span>Explore</span>
+              <div class="nav-active-dot"></div>
+            </li>
+            <li class="nav-item" data-page="search" id="navSearch">
+              <div class="nav-icon"><i class="fas fa-magnifying-glass"></i></div>
+              <span>Search</span>
+              <div class="nav-active-dot"></div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="nav-group">
+          <p class="nav-label">Library</p>
+          <ul class="nav-list">
+            <li class="nav-item" data-page="library" id="navLibrary">
+              <div class="nav-icon"><i class="fas fa-layer-group"></i></div>
+              <span>My Library</span>
+              <div class="nav-active-dot"></div>
+            </li>
+            <li class="nav-item" data-page="favorites" id="navFavorites">
+              <div class="nav-icon"><i class="fas fa-heart"></i></div>
+              <span>Liked Songs</span>
+              <div class="nav-active-dot"></div>
+            </li>
+            <li class="nav-item" data-page="dashboard" id="navDashboard">
+              <div class="nav-icon"><i class="fas fa-chart-simple"></i></div>
+              <span>Dashboard</span>
+              <div class="nav-active-dot"></div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="nav-group">
+          <p class="nav-label">Playlists</p>
+          <div class="sidebar-playlists" id="sidebarPlaylists"></div>
+          <button class="new-playlist-btn" id="createPlaylistSidebar">
+            <i class="fas fa-plus"></i>
+            <span>New Playlist</span>
+          </button>
+        </div>
+      </nav>
+
+      <!-- Mood Lighting Panel -->
+      <div class="mood-panel">
+        <p class="nav-label">Ambient Mood</p>
+        <div class="mood-grid">
+          <button class="mood-btn active" data-mood="default" title="Default">🌙</button>
+          <button class="mood-btn" data-mood="energetic" title="Energetic">⚡</button>
+          <button class="mood-btn" data-mood="chill" title="Chill">🧊</button>
+          <button class="mood-btn" data-mood="romantic" title="Romantic">💕</button>
+          <button class="mood-btn" data-mood="party" title="Party">🎉</button>
+          <button class="mood-btn" data-mood="sad" title="Melancholy">🌧️</button>
+          <button class="mood-btn" data-mood="focus" title="Focus">🎯</button>
+          <button class="mood-btn" data-mood="sunrise" title="Sunrise">🌅</button>
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-user" id="sidebarUser">
+          <div class="user-avatar" id="sidebarAvatar">
+            <i class="fas fa-user"></i>
+          </div>
+          <div class="user-info">
+            <p class="user-name" id="sidebarUserName">Guest</p>
+            <p class="user-plan">Free Plan</p>
+          </div>
+          <button class="user-options-btn" id="userMenuBtn" aria-label="User menu">
+            <i class="fas fa-ellipsis"></i>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ═══ MAIN CONTENT ═══ -->
+    <main class="main-area" id="mainArea">
+
+      <!-- TOP BAR -->
+      <header class="topbar" id="topbar">
+        <div class="topbar-left">
+          <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Open menu">
+            <i class="fas fa-bars"></i>
+          </button>
+          <div class="nav-history">
+            <button class="hist-btn" id="histBack" aria-label="Go back"><i class="fas fa-chevron-left"></i></button>
+            <button class="hist-btn" id="histForward" aria-label="Go forward"><i class="fas fa-chevron-right"></i></button>
+          </div>
+        </div>
+
+        <div class="topbar-search" id="topbarSearch">
+          <i class="fas fa-magnifying-glass"></i>
+          <input type="text" id="globalSearch" placeholder="Search songs, artists, moods..." autocomplete="off" />
+          <kbd class="search-shortcut">⌘K</kbd>
+          <div class="search-dropdown" id="searchDropdown"></div>
+        </div>
+
+        <div class="topbar-right">
+          <button class="icon-btn" id="themeToggle" aria-label="Toggle theme" title="Toggle theme">
+            <i class="fas fa-moon" id="themeIcon"></i>
+          </button>
+          <button class="icon-btn notif-btn" aria-label="Notifications" title="Notifications">
+            <i class="fas fa-bell"></i>
+            <span class="notif-dot"></span>
+          </button>
+          <div class="topbar-user" id="topbarUser">
+            <button class="auth-btn" id="authBtn" data-action="login">Sign In</button>
+          </div>
+        </div>
+      </header>
+
+      <!-- PAGE CONTENT -->
+      <div class="page-content" id="pageContent">
+
+        <!-- ═══ PAGE: LANDING ═══ -->
+        <div class="page active" id="page-landing">
+
+          <!-- HERO -->
+          <section class="hero" id="hero">
+            <canvas id="heroCanvas" class="hero-canvas"></canvas>
+            <div class="hero-content">
+              <div class="hero-eyebrow">
+                <span class="eyebrow-dot"></span>
+                <span>Premium Music Experience</span>
+              </div>
+              <h1 class="hero-title">
+                Feel Every
+                <span class="hero-typed" id="typedText">Beat Drop</span>
+              </h1>
+              <p class="hero-desc">
+                Discover millions of tracks, immerse yourself in mood-adaptive ambient lighting, and experience music like never before.
+              </p>
+              <div class="hero-actions">
+                <button class="btn-primary" id="heroStartBtn">
+                  <i class="fas fa-play"></i> Start Listening
+                </button>
+                <button class="btn-ghost" id="heroExploreBtn">
+                  <i class="fas fa-compass"></i> Explore Music
+                </button>
+              </div>
+              <div class="hero-stats">
+                <div class="hero-stat">
+                  <span class="stat-num" data-count="13">0</span>
+                  <span class="stat-label">Songs</span>
+                </div>
+                <div class="hero-stat-divider"></div>
+                <div class="hero-stat">
+                  <span class="stat-num" data-count="6">0</span>
+                  <span class="stat-label">Artists</span>
+                </div>
+                <div class="hero-stat-divider"></div>
+                <div class="hero-stat">
+                  <span class="stat-num" data-count="8">0</span>
+                  <span class="stat-label">Moods</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Vinyl Hero Visual -->
+            <div class="hero-visual">
+              <div class="hero-vinyl-wrap" id="heroVinyl">
+                <div class="hero-vinyl">
+                  <div class="vinyl-grooves"></div>
+                  <div class="vinyl-label">
+                    <img src="../Songs/../Images/c1.png" id="vinylCoverImg" alt="Now Playing" onerror="this.style.display='none'" />
+                  </div>
+                  <div class="vinyl-shine"></div>
+                </div>
+              </div>
+              <div class="hero-now-playing" id="heroNowPlaying">
+                <div class="hnp-wave">
+                  <span></span><span></span><span></span><span></span><span></span>
+                </div>
+                <div class="hnp-info">
+                  <p class="hnp-label">Now Playing</p>
+                  <p class="hnp-title">The Last Letter</p>
+                  <p class="hnp-artist">Maan Panu</p>
+                </div>
+              </div>
+              <!-- Floating music notes -->
+              <div class="floating-notes" aria-hidden="true">
+                <span>♪</span><span>♫</span><span>♩</span><span>♬</span><span>♪</span>
+              </div>
+            </div>
+          </section>
+
+          <!-- TRENDING -->
+          <section class="landing-section" id="trending">
+            <div class="section-head">
+              <div>
+                <p class="section-overline">🔥 Hot Right Now</p>
+                <h2 class="section-title">Trending Music</h2>
+              </div>
+              <button class="view-all-btn" id="viewAllTrending">View All <i class="fas fa-arrow-right"></i></button>
+            </div>
+            <div class="tracks-list" id="trendingList"></div>
+          </section>
+
+          <!-- ARTISTS -->
+          <section class="landing-section" id="artists">
+            <div class="section-head">
+              <div>
+                <p class="section-overline">⭐ Top Creators</p>
+                <h2 class="section-title">Featured Artists</h2>
+              </div>
+            </div>
+            <div class="artists-grid" id="artistsGrid"></div>
+          </section>
+
+          <!-- MOODS / GENRES -->
+          <section class="landing-section" id="moods">
+            <div class="section-head">
+              <div>
+                <p class="section-overline">🎨 Browse by Mood</p>
+                <h2 class="section-title">Discover Your Vibe</h2>
+              </div>
+            </div>
+            <div class="genres-grid" id="genresGrid"></div>
+          </section>
+
+          <!-- FEATURES -->
+          <section class="landing-section" id="features">
+            <div class="section-head-center">
+              <p class="section-overline">✨ Why SangeetHub</p>
+              <h2 class="section-title">Premium Experience</h2>
+              <p class="section-desc">Everything you need for the perfect music experience</p>
+            </div>
+            <div class="features-grid" id="featuresGrid"></div>
+          </section>
+
+          <!-- TESTIMONIALS -->
+          <section class="landing-section" id="testimonials">
+            <div class="section-head-center">
+              <p class="section-overline">💬 What People Say</p>
+              <h2 class="section-title">Loved by Listeners</h2>
+            </div>
+            <div class="testimonials-wrap">
+              <div class="testimonials-track" id="testimonialsTrack"></div>
+            </div>
+            <div class="testimonial-dots" id="testimonialDots"></div>
+          </section>
+
+          <!-- FOOTER -->
+          <footer class="landing-footer">
+            <div class="footer-top">
+              <div class="footer-brand">
+                <div class="footer-logo">
+                  <div class="brand-icon"><i class="fas fa-headphones"></i></div>
+                  <span class="brand-name">SangeetHub</span>
+                </div>
+                <p class="footer-tagline">The premium music streaming experience for music lovers everywhere.</p>
+                <p class="footer-edu">Educational Project by Siddharth Sharma</p>
+              </div>
+              <div class="footer-links">
+                <div class="footer-col">
+                  <h4>Product</h4>
+                  <ul>
+                    <li><a href="#">Features</a></li>
+                    <li><a href="#">Pricing</a></li>
+                    <li><a href="#">Download</a></li>
+                    <li><a href="#">Updates</a></li>
+                  </ul>
+                </div>
+                <div class="footer-col">
+                  <h4>Company</h4>
+                  <ul>
+                    <li><a href="#">About</a></li>
+                    <li><a href="#">Blog</a></li>
+                    <li><a href="#">Careers</a></li>
+                    <li><a href="#">Press</a></li>
+                  </ul>
+                </div>
+                <div class="footer-col">
+                  <h4>Support</h4>
+                  <ul>
+                    <li><a href="#">Help Center</a></li>
+                    <li><a href="mailto:siddhartsharma466@gmail.com">Contact</a></li>
+                    <li><a href="#">Community</a></li>
+                    <li><a href="#">Status</a></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="footer-bottom">
+              <p>© 2025 SangeetHub. All rights reserved. Educational Project.</p>
+              <p>Made with ♥ by Siddharth Sharma</p>
+            </div>
+          </footer>
+        </div>
+
+        <!-- ═══ PAGE: DISCOVER ═══ -->
+        <div class="page" id="page-app-home">
+          <div class="page-header">
+            <h1 class="page-greeting" id="greetingText">Good Evening</h1>
+            <p class="page-subheading">Here's what's trending for you</p>
+          </div>
+
+          <section class="content-section">
+            <div class="section-head"><h2>Recently Played</h2></div>
+            <div class="tracks-list" id="recentlyPlayed"></div>
+          </section>
+
+          <section class="content-section">
+            <div class="section-head">
+              <h2>🔥 Trending Now</h2>
+              <button class="view-all-btn" onclick="navigateTo('explore')">View All <i class="fas fa-arrow-right"></i></button>
+            </div>
+            <div class="tracks-grid" id="trendingGrid"></div>
+          </section>
+
+          <section class="content-section">
+            <div class="section-head"><h2>New Releases</h2></div>
+            <div class="tracks-grid" id="newReleases"></div>
+          </section>
+        </div>
+
+        <!-- ═══ PAGE: EXPLORE ═══ -->
+        <div class="page" id="page-explore">
+          <div class="page-header">
+            <h1>Explore</h1>
+            <p class="page-subheading">Browse by genre, mood, and more</p>
+          </div>
+
+          <section class="content-section">
+            <div class="section-head"><h2>Browse Categories</h2></div>
+            <div class="genres-grid mini" id="exploreGenres"></div>
+          </section>
+
+          <section class="content-section">
+            <div class="section-head"><h2>Mood Playlists</h2></div>
+            <div class="moods-grid" id="exploreMoods"></div>
+          </section>
+
+          <section class="content-section">
+            <div class="section-head">
+              <h2>All Songs</h2>
+              <div class="filter-tabs" id="exploreTabs">
+                <button class="filter-tab active" data-filter="all">All</button>
+                <button class="filter-tab" data-filter="punjabi">Punjabi</button>
+                <button class="filter-tab" data-filter="haryanvi">Haryanvi</button>
+                <button class="filter-tab" data-filter="hindi">Hindi</button>
+                <button class="filter-tab" data-filter="energetic">Energetic</button>
+                <button class="filter-tab" data-filter="chill">Chill</button>
+                <button class="filter-tab" data-filter="sad">Sad</button>
+              </div>
+            </div>
+            <div class="tracks-list" id="exploreList"></div>
+          </section>
+        </div>
+
+        <!-- ═══ PAGE: SEARCH ═══ -->
+        <div class="page" id="page-search">
+          <div class="page-header">
+            <h1>Search</h1>
+          </div>
+          <div class="search-page-box">
+            <div class="search-page-input-wrap">
+              <i class="fas fa-magnifying-glass"></i>
+              <input type="text" id="searchPageInput" class="search-page-input" placeholder="What do you want to listen to?" />
+            </div>
+          </div>
+          <div class="search-page-results" id="searchPageResults">
+            <div class="content-section">
+              <div class="section-head"><h2>Recent Searches</h2></div>
+              <div class="recent-searches" id="recentSearches"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ PAGE: LIBRARY ═══ -->
+        <div class="page" id="page-library">
+          <div class="page-header">
+            <h1>Your Library</h1>
+          </div>
+          <div class="library-grid" id="libraryGrid"></div>
+        </div>
+
+        <!-- ═══ PAGE: FAVORITES ═══ -->
+        <div class="page" id="page-favorites">
+          <div class="page-header favorites-header">
+            <div class="favorites-hero">
+              <div class="favorites-icon"><i class="fas fa-heart"></i></div>
+              <div>
+                <h1>Liked Songs</h1>
+                <p class="page-subheading" id="favCount">0 songs</p>
+              </div>
+            </div>
+            <button class="btn-primary" id="playAllFavs"><i class="fas fa-shuffle"></i> Shuffle Play</button>
+          </div>
+          <div class="tracks-list" id="favoritesList"></div>
+        </div>
+
+        <!-- ═══ PAGE: DASHBOARD ═══ -->
+        <div class="page" id="page-dashboard">
+          <div class="page-header">
+            <h1>Your Dashboard</h1>
+            <p class="page-subheading">Your listening insights and stats</p>
+          </div>
+          <div class="dashboard-grid">
+            <div class="dash-card">
+              <div class="dash-card-icon" style="--c:#7C3AED"><i class="fas fa-music"></i></div>
+              <div class="dash-card-info">
+                <h3 id="dashTotalPlayed">0</h3>
+                <p>Songs Played</p>
+              </div>
+            </div>
+            <div class="dash-card">
+              <div class="dash-card-icon" style="--c:#06B6D4"><i class="fas fa-clock"></i></div>
+              <div class="dash-card-info">
+                <h3 id="dashMinutes">0</h3>
+                <p>Minutes Listened</p>
+              </div>
+            </div>
+            <div class="dash-card">
+              <div class="dash-card-icon" style="--c:#10B981"><i class="fas fa-heart"></i></div>
+              <div class="dash-card-info">
+                <h3 id="dashFavs">0</h3>
+                <p>Liked Songs</p>
+              </div>
+            </div>
+            <div class="dash-card">
+              <div class="dash-card-icon" style="--c:#F59E0B"><i class="fas fa-list"></i></div>
+              <div class="dash-card-info">
+                <h3 id="dashPlaylists">0</h3>
+                <p>Playlists</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="content-section">
+            <div class="section-head"><h2>Most Played</h2></div>
+            <div class="tracks-list" id="mostPlayedList"></div>
+          </div>
+
+          <div class="content-section">
+            <div class="section-head"><h2>Recent Activity</h2></div>
+            <div class="activity-list" id="activityList"></div>
+          </div>
+        </div>
+
+      </div><!-- /page-content -->
+
+      <!-- MOBILE BOTTOM NAV -->
+      <nav class="mobile-nav" id="mobileNav">
+        <button class="mob-nav-btn active" data-page="landing"><i class="fas fa-house"></i><span>Home</span></button>
+        <button class="mob-nav-btn" data-page="explore"><i class="fas fa-fire"></i><span>Explore</span></button>
+        <button class="mob-nav-btn" data-page="search"><i class="fas fa-magnifying-glass"></i><span>Search</span></button>
+        <button class="mob-nav-btn" data-page="library"><i class="fas fa-layer-group"></i><span>Library</span></button>
+      </nav>
+
+    </main>
+
+  </div><!-- /app -->
+
+  <!-- ═══════════════════ PLAYER BAR ═══════════════════ -->
+  <div class="player-bar" id="playerBar">
+    <!-- Ambient glow behind player -->
+    <div class="player-ambient-glow" id="playerAmbientGlow"></div>
+
+    <div class="player-left">
+      <div class="player-cover-wrap">
+        <img id="playerCover" src="Images/c1.png" alt="Now Playing" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1 1%22/>'"/>
+        <div class="player-cover-glow" id="playerCoverGlow"></div>
+      </div>
+      <div class="player-track-info">
+        <p class="player-title" id="playerTitle">Select a song</p>
+        <p class="player-artist" id="playerArtist">—</p>
+      </div>
+      <button class="player-like-btn" id="playerLikeBtn" aria-label="Like song">
+        <i class="far fa-heart"></i>
+      </button>
+    </div>
+
+    <div class="player-center">
+      <div class="player-controls">
+        <button class="ctrl-btn" id="shuffleBtn" aria-label="Shuffle" title="Shuffle">
+          <i class="fas fa-shuffle"></i>
+        </button>
+        <button class="ctrl-btn" id="prevBtn" aria-label="Previous" title="Previous">
+          <i class="fas fa-backward-step"></i>
+        </button>
+        <button class="ctrl-btn play-btn" id="playBtn" aria-label="Play/Pause">
+          <i class="fas fa-play" id="playIcon"></i>
+        </button>
+        <button class="ctrl-btn" id="nextBtn" aria-label="Next" title="Next">
+          <i class="fas fa-forward-step"></i>
+        </button>
+        <button class="ctrl-btn" id="repeatBtn" aria-label="Repeat" title="Repeat">
+          <i class="fas fa-repeat"></i>
+        </button>
+      </div>
+      <div class="player-progress-wrap">
+        <span class="time-label" id="currentTime">0:00</span>
+        <div class="progress-track" id="progressTrack">
+          <div class="progress-fill" id="progressFill"></div>
+          <div class="progress-thumb" id="progressThumb"></div>
+        </div>
+        <span class="time-label" id="duration">0:00</span>
+      </div>
+    </div>
+
+    <div class="player-right">
+      <div class="visualizer-bars" id="playerVisualizer">
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <button class="ctrl-btn" id="lyricsBtn" aria-label="Lyrics" title="Lyrics">
+        <i class="fas fa-microphone"></i>
+      </button>
+      <button class="ctrl-btn" id="queueBtn" aria-label="Queue" title="Queue">
+        <i class="fas fa-list-music"></i>
+      </button>
+      <div class="volume-ctrl">
+        <button class="ctrl-btn" id="muteBtn" aria-label="Mute">
+          <i class="fas fa-volume-high" id="volIcon"></i>
+        </button>
+        <div class="volume-track" id="volumeRange">
+          <div class="volume-fill" id="volumeFill"></div>
+        </div>
+      </div>
+      <button class="ctrl-btn" id="fullscreenPlayerBtn" aria-label="Full screen player" title="Fullscreen">
+        <i class="fas fa-expand"></i>
+      </button>
+    </div>
+
+    <!-- Hidden audio engine -->
+    <audio id="audioEngine" preload="none"></audio>
+  </div>
+
+  <!-- ═══════════════════ QUEUE PANEL ═══════════════════ -->
+  <div class="queue-panel" id="queuePanel">
+    <div class="queue-header">
+      <h3>Queue</h3>
+      <button class="icon-btn" id="closeQueueBtn" aria-label="Close queue"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="queue-section">
+      <p class="queue-section-label">Now Playing</p>
+      <div id="queueCurrent"></div>
+    </div>
+    <div class="queue-section">
+      <p class="queue-section-label">Next Up</p>
+      <div id="queueList"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ FULLSCREEN PLAYER ═══════════════════ -->
+  <div class="fullscreen-player hidden" id="fullscreenPlayer">
+    <div class="fs-bg" id="fsBg"></div>
+    <div class="fs-ambient-orbs" id="fsAmbientOrbs">
+      <div class="fs-orb fs-orb-1"></div>
+      <div class="fs-orb fs-orb-2"></div>
+    </div>
+    <button class="fs-close" id="fsCloseBtn" aria-label="Close fullscreen"><i class="fas fa-chevron-down"></i></button>
+
+    <div class="fs-layout">
+      <div class="fs-vinyl-col">
+        <div class="fs-vinyl-wrap" id="fsVinylWrap">
+          <div class="fs-vinyl">
+            <img id="fsCover" src="Images/c1.png" alt="Cover" onerror="this.style.opacity='0'" />
+            <div class="fs-vinyl-overlay"></div>
+          </div>
+        </div>
+        <!-- Waveform canvas -->
+        <canvas id="waveformCanvas" class="fs-waveform"></canvas>
+      </div>
+
+      <div class="fs-info-col">
+        <div class="fs-track-info">
+          <h2 id="fsTitle">Select a song</h2>
+          <p id="fsArtist">—</p>
+          <div class="fs-tags" id="fsTags"></div>
+        </div>
+
+        <!-- Lyrics Panel -->
+        <div class="fs-lyrics-panel" id="fsLyricsPanel">
+          <div class="fs-lyrics-header">
+            <i class="fas fa-microphone"></i> LYRICS
+          </div>
+          <div class="fs-lyrics-content" id="fsLyricsContent">
+            <p class="lyrics-placeholder">Lyrics are stored locally on this device.</p>
+          </div>
+        </div>
+
+        <div class="fs-progress-wrap">
+          <div class="fs-progress-track" id="fsProgressTrack">
+            <div class="fs-progress-fill" id="fsProgressFill"></div>
+            <div class="fs-progress-thumb" id="fsProgressThumb"></div>
+          </div>
+          <div class="fs-time">
+            <span id="fsCurrentTime">0:00</span>
+            <span id="fsDuration">0:00</span>
+          </div>
+        </div>
+
+        <div class="fs-controls">
+          <button class="fs-ctrl-btn" id="fsShuffleBtn" aria-label="Shuffle"><i class="fas fa-shuffle"></i></button>
+          <button class="fs-ctrl-btn" id="fsPrevBtn" aria-label="Previous"><i class="fas fa-backward-step"></i></button>
+          <button class="fs-ctrl-btn fs-play-btn" id="fsPlayBtn" aria-label="Play/Pause"><i class="fas fa-play" id="fsPlayIcon"></i></button>
+          <button class="fs-ctrl-btn" id="fsNextBtn" aria-label="Next"><i class="fas fa-forward-step"></i></button>
+          <button class="fs-ctrl-btn" id="fsRepeatBtn" aria-label="Repeat"><i class="fas fa-repeat"></i></button>
+        </div>
+
+        <div class="fs-bottom">
+          <button class="fs-ctrl-btn" id="fsLikeBtn" aria-label="Like"><i class="far fa-heart"></i></button>
+          <div class="fs-volume">
+            <i class="fas fa-volume-high"></i>
+            <div class="volume-track fs-vol-track" id="fsVolume">
+              <div class="volume-fill" id="fsVolFill"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ MODALS ═══════════════════ -->
+
+  <!-- Auth Modal -->
+  <div class="modal-overlay hidden" id="authModal">
+    <div class="modal auth-modal">
+      <button class="modal-close" id="authModalClose" aria-label="Close"><i class="fas fa-xmark"></i></button>
+      <div class="auth-modal-header">
+        <div class="brand-icon"><i class="fas fa-headphones"></i></div>
+        <h2>Welcome Back</h2>
+        <p>Sign in to SangeetHub</p>
+      </div>
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-tab="login">Sign In</button>
+        <button class="auth-tab" data-tab="signup">Sign Up</button>
+      </div>
+      <form class="auth-form" id="loginForm">
+        <div class="form-group">
+          <label for="loginEmail">Email</label>
+          <input type="email" id="loginEmail" placeholder="your@email.com" autocomplete="email" />
+        </div>
+        <div class="form-group">
+          <label for="loginPassword">Password</label>
+          <div class="password-wrap">
+            <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" />
+            <button type="button" class="toggle-pw"><i class="fas fa-eye"></i></button>
+          </div>
+        </div>
+        <p class="auth-demo-hint">Demo: admin@sangeet.com / admin123</p>
+        <button type="submit" class="btn-primary full-width">Sign In</button>
+      </form>
+      <form class="auth-form hidden" id="signupForm">
+        <div class="form-group">
+          <label for="signupName">Full Name</label>
+          <input type="text" id="signupName" placeholder="Your Name" autocomplete="name" />
+        </div>
+        <div class="form-group">
+          <label for="signupEmail">Email</label>
+          <input type="email" id="signupEmail" placeholder="your@email.com" autocomplete="email" />
+        </div>
+        <div class="form-group">
+          <label for="signupPassword">Password</label>
+          <div class="password-wrap">
+            <input type="password" id="signupPassword" placeholder="••••••••" autocomplete="new-password" />
+            <button type="button" class="toggle-pw"><i class="fas fa-eye"></i></button>
+          </div>
+        </div>
+        <button type="submit" class="btn-primary full-width">Create Account</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Create Playlist Modal -->
+  <div class="modal-overlay hidden" id="playlistModal">
+    <div class="modal playlist-modal">
+      <button class="modal-close" id="playlistModalClose" aria-label="Close"><i class="fas fa-xmark"></i></button>
+      <h2>Create Playlist</h2>
+      <form id="playlistForm">
+        <div class="form-group">
+          <label for="playlistName">Name</label>
+          <input type="text" id="playlistName" placeholder="My Awesome Playlist" maxlength="50" />
+        </div>
+        <div class="form-group">
+          <label for="playlistDesc">Description <span class="optional">(optional)</span></label>
+          <textarea id="playlistDesc" placeholder="What's this playlist about?" rows="3"></textarea>
+        </div>
+        <button type="submit" class="btn-primary full-width" id="createPlaylistSubmit">
+          <i class="fas fa-plus"></i> Create Playlist
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- YouTube Playlist Modal -->
+  <div class="modal-overlay hidden" id="ytModal">
+    <div class="modal yt-modal">
+      <button class="modal-close" id="ytModalClose" aria-label="Close"><i class="fas fa-xmark"></i></button>
+      <div class="yt-modal-header">
+        <i class="fab fa-youtube" style="color:#FF0000"></i>
+        <h2>Connect YouTube Playlist</h2>
+      </div>
+      <p class="modal-desc">Paste any public YouTube / YouTube Music playlist URL or playlist ID. SangeetHub will use it as your queue.</p>
+      <div class="form-group">
+        <label for="ytPlaylistUrl">Playlist URL or ID</label>
+        <input type="text" id="ytPlaylistUrl" placeholder="https://www.youtube.com/playlist?list=..." />
+      </div>
+      <button class="btn-primary full-width" id="ytConnectBtn"><i class="fab fa-youtube"></i> Connect Playlist</button>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer" role="alert" aria-live="polite"></div>
+
+  <!-- Context Menu -->
+  <div class="context-menu hidden" id="contextMenu">
+    <button class="ctx-item" id="ctxPlay"><i class="fas fa-play"></i> Play</button>
+    <button class="ctx-item" id="ctxLike"><i class="far fa-heart"></i> Like</button>
+    <button class="ctx-item" id="ctxAddPlaylist"><i class="fas fa-plus"></i> Add to Playlist</button>
+    <button class="ctx-item" id="ctxQueue"><i class="fas fa-list-music"></i> Add to Queue</button>
+    <div class="ctx-divider"></div>
+    <button class="ctx-item" id="ctxShare"><i class="fas fa-share-nodes"></i> Share</button>
+  </div>
+
+  <!-- Keyboard Shortcut Hint -->
+  <div class="shortcut-toast hidden" id="shortcutToast"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
