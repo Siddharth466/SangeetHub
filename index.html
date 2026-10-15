@@ -24,6 +24,7 @@
   <!-- FONT AWESOME -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 
+  <link rel="icon" type="image/svg+xml" href="assets/brand/app-icon-1.svg" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -42,6 +43,7 @@
   <div id="loader" class="loader">
     <div class="loader-inner">
       <div class="loader-logo">
+        <img class="loader-brand-mark" src="assets/brand/app-icon-2.svg" alt="SangeetHub" />
         <div class="loader-disc-wrap">
           <div class="loader-disc">
             <div class="loader-disc-rings">
@@ -69,12 +71,10 @@
     <!-- ═══ SIDEBAR ═══ -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
-        <div class="brand">
-          <div class="brand-icon">
-            <i class="fas fa-headphones"></i>
-          </div>
-          <span class="brand-name">SangeetHub</span>
-        </div>
+        <a class="brand" href="#" data-page="landing" aria-label="SangeetHub home">
+          <img class="brand-icon-image" src="assets/brand/app-icon-1.svg" alt="" />
+          <span class="brand-name">Sangeet<span>Hub</span></span>
+        </a>
         <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
           <i class="fas fa-chevron-left"></i>
         </button>
@@ -219,6 +219,7 @@
                 <span class="eyebrow-dot"></span>
                 <span>Premium Music Experience</span>
               </div>
+              <img class="hero-brand-wordmark" src="assets/brand/main-logo.svg" alt="SangeetHub — Music for every mood" />
               <h1 class="hero-title">
                 Feel Every
                 <span class="hero-typed" id="typedText">Beat Drop</span>
