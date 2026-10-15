@@ -2017,3 +2017,18 @@ input, textarea, select { font-family: var(--font); outline: none; }
   .genres-grid { grid-template-columns: repeat(2, 1fr); }
   .dashboard-grid { grid-template-columns: 1fr 1fr; }
 }
+
+
+/* ═══ SANGEETHUB ROYAL GOLD + SAPPHIRE BRAND IDENTITY ═══ */
+.brand { display:flex; align-items:center; gap:11px; min-width:0; }
+.brand-icon-image { width:42px; height:42px; object-fit:contain; flex:0 0 auto; filter:drop-shadow(0 0 12px rgba(42,143,220,.18)); }
+.brand-name { font-family:var(--font-display); font-weight:800; letter-spacing:-.045em; color:#f4e5bd; }
+.brand-name span { color:#77c9f2; }
+.loader-brand-mark { width:86px; height:86px; object-fit:contain; margin:0 auto 4px; filter:drop-shadow(0 0 28px rgba(31,139,218,.25)); animation:brandFloat 3s ease-in-out infinite; }
+.hero-brand-wordmark { width:min(100%,410px); height:auto; margin:4px 0 14px; filter:drop-shadow(0 8px 25px rgba(0,0,0,.25)); animation:brandReveal .9s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes brandFloat { 0%,100%{transform:translateY(0) rotate(-2deg)} 50%{transform:translateY(-7px) rotate(2deg)} }
+@keyframes brandReveal { from{opacity:0;transform:translateY(12px) scale(.97)} to{opacity:1;transform:translateY(0) scale(1)} }
+.sidebar.collapsed .brand { justify-content:center; }
+.sidebar.collapsed .brand-name { display:none; }
+@media (max-width:700px) { .hero-brand-wordmark { width:min(82%,320px); margin-inline:auto; } }
+@media (prefers-reduced-motion:reduce) { .loader-brand-mark,.hero-brand-wordmark { animation:none; } }
