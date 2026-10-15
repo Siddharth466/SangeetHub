@@ -28,7 +28,7 @@
 </head>
 <body>
 
-  <!-- ═══════════════════════════════ AMBIENT BACKDROP ═══════════════════════════════ -->
+  <!-- ═══════════════════════════════ AMBIENT BACKDROP ══════════════════════════ -->
   <div id="ambientBackdrop" class="ambient-backdrop" aria-hidden="true">
     <div class="ambient-orb orb-1"></div>
     <div class="ambient-orb orb-2"></div>
@@ -63,7 +63,7 @@
     </div>
   </div>
 
-  <!-- ═══════════════════════════════ APP SHELL ═══════════════════════════════ -->
+  <!-- ═══════════════════════════════ APP SHELL ════════════════════════════ -->
   <div id="app" class="app hidden">
 
     <!-- ═══ SIDEBAR ═══ -->
@@ -256,7 +256,7 @@
                 <div class="hero-vinyl">
                   <div class="vinyl-grooves"></div>
                   <div class="vinyl-label">
-                    <img src="../Songs/../Images/c1.png" id="vinylCoverImg" alt="Now Playing" onerror="this.style.display='none'" />
+                    <img src="Images/c1.png" id="vinylCoverImg" alt="Now Playing" onerror="this.style.display='none'" />
                   </div>
                   <div class="vinyl-shine"></div>
                 </div>
@@ -271,10 +271,39 @@
                   <p class="hnp-artist">Maan Panu</p>
                 </div>
               </div>
-              <!-- Floating music notes -->
               <div class="floating-notes" aria-hidden="true">
                 <span>♪</span><span>♫</span><span>♩</span><span>♬</span><span>♪</span>
               </div>
+            </div>
+          </section>
+
+          <section class="landing-section showcase-section" aria-label="SangeetHub gallery">
+            <div class="section-head-center">
+              <p class="section-overline">📸 Experience the Vibe</p>
+              <h2 class="section-title">Built for Every Mood</h2>
+            </div>
+            <div class="showcase-grid">
+              <article class="showcase-card">
+                <img src="assets/fav-removebg-preview.png" alt="Premium sound and branding" />
+                <div class="showcase-content">
+                  <span>Premium sound</span>
+                  <h3>High-quality listening</h3>
+                </div>
+              </article>
+              <article class="showcase-card">
+                <img src="assets/fav2-removebg-preview.png" alt="Smart recommendations and discovery" />
+                <div class="showcase-content">
+                  <span>Smart discovery</span>
+                  <h3>Curated for your taste</h3>
+                </div>
+              </article>
+              <article class="showcase-card">
+                <img src="assets/image_af8f3032.jpg_202610151-removebg-preview.png" alt="Playlist and music experience" />
+                <div class="showcase-content">
+                  <span>Playlist magic</span>
+                  <h3>Enjoy every moment</h3>
+                </div>
+              </article>
             </div>
           </section>
 
@@ -653,7 +682,6 @@
             <div class="fs-vinyl-overlay"></div>
           </div>
         </div>
-        <!-- Waveform canvas -->
         <canvas id="waveformCanvas" class="fs-waveform"></canvas>
       </div>
 
@@ -664,7 +692,6 @@
           <div class="fs-tags" id="fsTags"></div>
         </div>
 
-        <!-- Lyrics Panel -->
         <div class="fs-lyrics-panel" id="fsLyricsPanel">
           <div class="fs-lyrics-header">
             <i class="fas fa-microphone"></i> LYRICS
