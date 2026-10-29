@@ -24,7 +24,7 @@
   <!-- FONT AWESOME -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=20261029-blank-screen-fix" />
   <link rel="icon" type="image/svg+xml" href="assets/brand/favicon.svg" />
 </head>
 <body>
@@ -832,6 +832,53 @@
   <!-- Keyboard Shortcut Hint -->
   <div class="shortcut-toast hidden" id="shortcutToast"></div>
 
-  <script src="script.js"></script>
+  <div id="startupFallbackNotice" class="startup-fallback-notice hidden" role="alert" aria-live="assertive">
+    <span>SangeetHub could not start all interactive features. The page has been shown in recovery mode. Refresh once; if this repeats, open the browser console and share the first red error.</span>
+    <button type="button" aria-label="Dismiss startup warning" onclick="this.parentElement.classList.add('hidden')">Dismiss</button>
+  </div>
+
+  <!-- Keep this recovery guard separate from script.js so it still runs if that file has a runtime or load error. -->
+  <script>
+    (function () {
+      function revealSangeetHub(message) {
+        var app = document.getElementById('app');
+        var loader = document.getElementById('loader');
+        var notice = document.getElementById('startupFallbackNotice');
+        if (app) app.classList.remove('hidden');
+        if (loader) {
+          loader.classList.add('fade-out');
+          window.setTimeout(function () { loader.style.display = 'none'; }, 750);
+        }
+        if (notice && message) {
+          notice.querySelector('span').textContent = message;
+          notice.classList.remove('hidden');
+        }
+      }
+
+      window.__sangeetHubRevealOnFailure = revealSangeetHub;
+
+      window.addEventListener('error', function (event) {
+        var isScriptFailure = event.target && event.target.tagName === 'SCRIPT';
+        var isRuntimeFailure = event.target === window || !!event.message || !!event.error;
+        if (!isScriptFailure && !isRuntimeFailure) return;
+        console.error('SangeetHub startup/runtime error:', event.message || event.target.src || event.error);
+        revealSangeetHub('A SangeetHub script failed. The page is visible in recovery mode, but some controls may not work. Refresh once; if it repeats, share the first red browser-console error.');
+      }, true);
+
+      window.addEventListener('unhandledrejection', function (event) {
+        console.error('SangeetHub unhandled promise rejection:', event.reason);
+        revealSangeetHub('A SangeetHub operation failed. The page is visible in recovery mode; some controls may not work. Share the first red browser-console error if this repeats.');
+      });
+
+      window.setTimeout(function () {
+        var app = document.getElementById('app');
+        if (app && app.classList.contains('hidden')) {
+          console.error('SangeetHub startup timed out before the app became visible.');
+          revealSangeetHub('SangeetHub took too long to start. The page has been shown in recovery mode. Refresh once; if this repeats, share the first red browser-console error.');
+        }
+      }, 5000);
+    })();
+  </script>
+  <script src="script.js?v=20261029-blank-screen-fix"></script>
 </body>
 </html>
