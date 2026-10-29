@@ -2094,3 +2094,35 @@ input, textarea, select { font-family: var(--font); outline: none; }
 @media (prefers-reduced-motion: reduce) {
   .connect-youtube-btn { transition: none; }
 }
+
+
+/* Blank-screen recovery notice */
+.startup-fallback-notice {
+  position: fixed;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(720px, calc(100vw - 28px));
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: rgba(65, 25, 30, 0.97);
+  color: #fff;
+  border: 1px solid rgba(255, 140, 140, 0.55);
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0,0,0,.45);
+  font: 500 13px/1.5 var(--font);
+  z-index: 2000;
+}
+.startup-fallback-notice button {
+  flex: 0 0 auto;
+  padding: 7px 10px;
+  border-radius: 8px;
+  color: #fff;
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.2);
+  cursor: pointer;
+}
+.startup-fallback-notice button:hover { background: rgba(255,255,255,.2); }

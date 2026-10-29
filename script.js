@@ -216,12 +216,22 @@ function cacheDOM() {
 // INIT
 // ═══════════════════════════════════════════════════════════
 
-window.addEventListener('load', () => {
+window.addEventListener('DOMContentLoaded', () => {
   cacheDOM();
-  applyTheme(state.theme);
-  applyMood(state.mood, false); // apply without animation on load
+
+  // Reveal the application without waiting for remote fonts/icons/images to finish loading.
+  if (DOM.app) DOM.app.classList.remove('hidden');
+  if (DOM.loader) {
+    DOM.loader.classList.add('fade-out');
+    window.setTimeout(() => { DOM.loader.style.display = 'none'; }, 650);
+  }
+
+  try { applyTheme(state.theme); } catch (error) { console.error('Theme startup failed:', error); }
+  try { applyMood(state.mood, false); } catch (error) { console.error('Mood startup failed:', error); }
   animateLoader();
-  setTimeout(initApp, 2000);
+
+  // Each subsystem is isolated so one optional feature cannot blank the whole app.
+  window.setTimeout(initApp, 100);
 });
 
 function animateLoader() {
@@ -236,35 +246,53 @@ function animateLoader() {
 }
 
 function initApp() {
-  updateHistoryControls();
-  DOM.loader.classList.add('fade-out');
-  setTimeout(() => { if (DOM.loader) DOM.loader.style.display = 'none'; }, 700);
-  DOM.app.classList.remove('hidden');
+  // Fail open: show the landing page before starting nonessential features.
+  if (DOM.app) DOM.app.classList.remove('hidden');
+  if (DOM.loader) {
+    DOM.loader.classList.add('fade-out');
+    window.setTimeout(() => { DOM.loader.style.display = 'none'; }, 650);
+  }
 
-  initHeroCanvas();
-  initTypedText();
-  initLandingPage();
-  initPlayer();
-  initNavigation();
-  initSearch();
-  initAuth();
-  initTheme();
-  initMoodSystem();
-  initModals();
-  initMobileNav();
-  initSidebarCollapse();
-  initCounterAnimation();
-  initTestimonialSlider();
-  initScrollAnimations();
-  initContextMenu();
-  initKeyboardShortcuts();
-  updatePlayerUI();
-  updateSidebarPlaylists();
-  updateAuthUI();
-  updateDashboard();
-  updateTimeGreeting();
+  const startupTasks = [
+    ['history controls', updateHistoryControls],
+    ['hero animation', initHeroCanvas],
+    ['typed headline', initTypedText],
+    ['landing content', initLandingPage],
+    ['audio player', initPlayer],
+    ['navigation', initNavigation],
+    ['search', initSearch],
+    ['sign-in UI', initAuth],
+    ['theme controls', initTheme],
+    ['mood controls', initMoodSystem],
+    ['dialogs', initModals],
+    ['mobile navigation', initMobileNav],
+    ['sidebar controls', initSidebarCollapse],
+    ['counter animation', initCounterAnimation],
+    ['feature carousel', initTestimonialSlider],
+    ['scroll effects', initScrollAnimations],
+    ['song context menu', initContextMenu],
+    ['keyboard shortcuts', initKeyboardShortcuts],
+    ['player UI', updatePlayerUI],
+    ['playlist navigation', updateSidebarPlaylists],
+    ['account UI', updateAuthUI],
+    ['dashboard', updateDashboard],
+    ['time greeting', updateTimeGreeting],
+  ];
 
-  setTimeout(() => showToast('Welcome to SangeetHub! 🎵', 'info'), 600);
+  for (const [feature, initialize] of startupTasks) {
+    try {
+      initialize();
+    } catch (error) {
+      console.error('SangeetHub startup failed in ' + feature + ':', error);
+      if (typeof window.__sangeetHubRevealOnFailure === 'function') {
+        window.__sangeetHubRevealOnFailure(
+          'The ' + feature + ' feature could not start. SangeetHub remains visible; check the first red browser-console error if a control is missing.'
+        );
+      }
+    }
+  }
+
+  window.setTimeout(() => showToast('Welcome to SangeetHub! 🎵', 'info'), 600);
 }
 
 // ═══════════════════════════════════════════════════════════
