@@ -11,7 +11,7 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge" />
   <meta name="theme-color" content="#7C3AED" />
   <meta property="og:title" content="SangeetHub — Premium Music Streaming" />
-  <meta property="og:description" content="Stream millions of songs with stunning ambient mood lighting and premium audio quality." />
+  <meta property="og:description" content="Explore a curated track library, switch ambient moods, create playlists, and listen with SangeetHub." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://siddharth466.github.io/SangeetHub/" />
   <title>SangeetHub — Premium Music Streaming</title>
@@ -25,6 +25,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 
   <link rel="stylesheet" href="style.css" />
+  <link rel="icon" type="image/svg+xml" href="assets/brand/favicon.svg" />
 </head>
 <body>
 
@@ -69,7 +70,7 @@
     <!-- ═══ SIDEBAR ═══ -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
-        <a class="brand" href="https://siddharth466.github.io/SangeetHub/" data-page="landing" aria-label="SangeetHub home">
+        <a class="brand" href="#hero" data-page="landing" aria-label="SangeetHub home">
           <span class="brand-name">Sangeet<span>Hub</span></span>
         </a>
         <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
@@ -132,6 +133,10 @@
             <i class="fas fa-plus"></i>
             <span>New Playlist</span>
           </button>
+          <button class="connect-youtube-btn" id="connectYoutubePlaylist" type="button">
+            <i class="fab fa-youtube" aria-hidden="true"></i>
+            <span>Connect YouTube Playlist</span>
+          </button>
         </div>
       </nav>
 
@@ -176,8 +181,8 @@
             <i class="fas fa-bars"></i>
           </button>
           <div class="nav-history">
-            <button class="hist-btn" id="histBack" aria-label="Go back"><i class="fas fa-chevron-left"></i></button>
-            <button class="hist-btn" id="histForward" aria-label="Go forward"><i class="fas fa-chevron-right"></i></button>
+            <button class="hist-btn" id="histBack" aria-label="Go to previous page" disabled><i class="fas fa-chevron-left"></i></button>
+            <button class="hist-btn" id="histForward" aria-label="Go to next page" disabled><i class="fas fa-chevron-right"></i></button>
           </div>
         </div>
 
@@ -222,7 +227,7 @@
                 <span class="hero-typed" id="typedText">Beat Drop</span>
               </h1>
               <p class="hero-desc">
-                Discover millions of tracks, immerse yourself in mood-adaptive ambient lighting, and experience music like never before.
+                Explore the included music library, switch ambient moods, save favorites, and create playlists while you listen.
               </p>
               <div class="hero-actions">
                 <button class="btn-primary" id="heroStartBtn">
@@ -315,7 +320,7 @@
           <section class="landing-section" id="features">
             <div class="section-head-center">
               <p class="section-overline">✨ Why SangeetHub</p>
-              <h2 class="section-title">Premium Experience</h2>
+              <h2 class="section-title">A Focused Music Experience</h2>
               <p class="section-desc">Everything you need for the perfect music experience</p>
             </div>
             <div class="features-grid" id="featuresGrid"></div>
@@ -324,8 +329,8 @@
           <!-- TESTIMONIALS -->
           <section class="landing-section" id="testimonials">
             <div class="section-head-center">
-              <p class="section-overline">💬 What People Say</p>
-              <h2 class="section-title">Loved by Listeners</h2>
+              <p class="section-overline">🎧 What You Can Do</p>
+              <h2 class="section-title">Built for Your Listening Sessions</h2>
             </div>
             <div class="testimonials-wrap">
               <div class="testimonials-track" id="testimonialsTrack"></div>
@@ -346,36 +351,34 @@
               </div>
               <div class="footer-links">
                 <div class="footer-col">
-                  <h4>Product</h4>
+                  <h4>Explore</h4>
                   <ul>
-                    <li><a href="#">Features</a></li>
-                    <li><a href="#">Pricing</a></li>
-                    <li><a href="#">Download</a></li>
-                    <li><a href="#">Updates</a></li>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#trending">Trending Tracks</a></li>
+                    <li><a href="#artists">Artists</a></li>
+                    <li><a href="#moods">Browse Moods</a></li>
                   </ul>
                 </div>
                 <div class="footer-col">
-                  <h4>Company</h4>
+                  <h4>Project</h4>
                   <ul>
-                    <li><a href="#">About</a></li>
-                    <li><a href="#">Blog</a></li>
-                    <li><a href="#">Careers</a></li>
-                    <li><a href="#">Press</a></li>
+                    <li><a href="#hero">About SangeetHub</a></li>
+                    <li><a href="https://github.com/Siddharth466/SangeetHub" target="_blank" rel="noopener noreferrer">Source Code</a></li>
+                    <li><a href="https://github.com/Siddharth466/SangeetHub/issues" target="_blank" rel="noopener noreferrer">Report a Bug</a></li>
+                    <li><a href="https://github.com/Siddharth466/SangeetHub/blob/main/README.md" target="_blank" rel="noopener noreferrer">README</a></li>
                   </ul>
                 </div>
                 <div class="footer-col">
-                  <h4>Support</h4>
+                  <h4>Contact</h4>
                   <ul>
-                    <li><a href="#">Help Center</a></li>
-                    <li><a href="mailto:siddhartsharma466@gmail.com">Contact</a></li>
-                    <li><a href="#">Community</a></li>
-                    <li><a href="#">Status</a></li>
+                    <li><a href="mailto:siddhartsharma466@gmail.com">Email Siddharth</a></li>
+                    <li><a href="https://github.com/Siddharth466" target="_blank" rel="noopener noreferrer">GitHub Profile</a></li>
                   </ul>
                 </div>
               </div>
             </div>
             <div class="footer-bottom">
-              <p>© 2025 SangeetHub. All rights reserved. Educational Project.</p>
+              <p>© 2026 SangeetHub. Independent educational project.</p>
               <p>Made with ♥ by Siddharth Sharma</p>
             </div>
           </footer>
@@ -775,6 +778,21 @@
     </div>
   </div>
 
+  <!-- Add song to playlist modal -->
+  <div class="modal-overlay hidden" id="addToPlaylistModal">
+    <div class="modal">
+      <button class="modal-close" id="addToPlaylistModalClose" aria-label="Close"><i class="fas fa-xmark"></i></button>
+      <h2>Add to Playlist</h2>
+      <form id="addToPlaylistForm" class="auth-form">
+        <div class="form-group">
+          <label for="targetPlaylistSelect">Choose a playlist</label>
+          <select id="targetPlaylistSelect" required></select>
+        </div>
+        <button type="submit" class="btn-primary full-width"><i class="fas fa-plus"></i> Add Song</button>
+      </form>
+    </div>
+  </div>
+
   <!-- YouTube Playlist Modal -->
   <div class="modal-overlay hidden" id="ytModal">
     <div class="modal yt-modal">
@@ -783,12 +801,18 @@
         <i class="fab fa-youtube" style="color:#FF0000"></i>
         <h2>Connect YouTube Playlist</h2>
       </div>
-      <p class="modal-desc">Paste any public YouTube / YouTube Music playlist URL or playlist ID. SangeetHub will use it as your queue.</p>
+      <p class="modal-desc">Paste a public YouTube or YouTube Music playlist link or ID. It will play here in an embedded player; it cannot be merged into the local MP3 queue.</p>
       <div class="form-group">
         <label for="ytPlaylistUrl">Playlist URL or ID</label>
         <input type="text" id="ytPlaylistUrl" placeholder="https://www.youtube.com/playlist?list=..." />
       </div>
-      <button class="btn-primary full-width" id="ytConnectBtn"><i class="fab fa-youtube"></i> Connect Playlist</button>
+      <button type="button" class="btn-primary full-width" id="ytConnectBtn"><i class="fab fa-youtube"></i> Connect Playlist</button>
+      <div class="yt-embed-wrap hidden" id="ytEmbedWrap">
+        <iframe id="ytPlaylistFrame" title="YouTube playlist player" loading="lazy"
+          referrerpolicy="strict-origin-when-cross-origin"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen></iframe>
+      </div>
     </div>
   </div>
 
