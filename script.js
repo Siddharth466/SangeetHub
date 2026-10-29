@@ -856,7 +856,11 @@ function renderLibrary() {
       <div class="library-card-meta">${item.meta}</div>
     </div>`).join('');
   grid.querySelectorAll('.library-card').forEach((card, i) => {
-    card.addEventListener('click', () => items[i].action());
+    const activate = () => items[i].action();
+    card.addEventListener('click', activate);
+    card.addEventListener('keydown', event => {
+      if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); activate(); }
+    });
   });
 }
 
@@ -1035,8 +1039,13 @@ function currentSong() {
 function playSong(index) {
   const q = state.player.queue;
   if (index < 0 || index >= q.length) return;
-  state.player.currentSongIndex = index;
   const song = q[index];
+  const previousSong = currentSong();
+  if (previousSong && previousSong.id !== song.id) {
+    state.player.history.push(previousSong.id);
+    if (state.player.history.length > 100) state.player.history.shift();
+  }
+  state.player.currentSongIndex = index;
 
   // Update audio
   DOM.audio.src = song.src;
@@ -1453,9 +1462,13 @@ function renderRecentSearches() {
       ${escapeHtml(s)}
     </div>`).join('');
   el.querySelectorAll('.recent-search-chip').forEach(chip => {
-    chip.addEventListener('click', () => {
+    const activate = () => {
       const spi = $('searchPageInput');
       if (spi) { spi.value = chip.dataset.query; spi.dispatchEvent(new Event('input')); spi.focus(); }
+    };
+    chip.addEventListener('click', activate);
+    chip.addEventListener('keydown', event => {
+      if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); activate(); }
     });
   });
 }
