@@ -65,12 +65,12 @@ const FEATURES = [
 ];
 
 const TESTIMONIALS = [
-  { text: 'Choose an ambient theme to change the visual atmosphere while listening.', name: 'Ambient Themes', role: 'Visual feature', initials: 'AT', stars: 5 },
-  { text: 'Start a track and control playback, seeking, volume, shuffle, and repeat.', name: 'Playback Controls', role: 'Player feature', initials: 'PC', stars: 5 },
-  { text: 'Keep favorite songs in one place using the Liked Songs library.', name: 'Liked Songs', role: 'Library feature', initials: 'LS', stars: 5 },
-  { text: 'Search by song title or artist to find tracks in the included library.', name: 'Song Search', role: 'Discovery feature', initials: 'SS', stars: 5 },
-  { text: 'Create named playlists stored locally in this browser.', name: 'Personal Playlists', role: 'Browser feature', initials: 'PL', stars: 5 },
-  { text: 'Load a public YouTube playlist in the embedded player when available.', name: 'YouTube Player', role: 'External embed', initials: 'YT', stars: 5 },
+  { text: 'Choose an ambient theme to change the visual atmosphere while listening.', name: 'Ambient Themes', role: 'Visual feature', initials: 'AT', stars: 0 },
+  { text: 'Start a track and control playback, seeking, volume, shuffle, and repeat.', name: 'Playback Controls', role: 'Player feature', initials: 'PC', stars: 0 },
+  { text: 'Keep favorite songs in one place using the Liked Songs library.', name: 'Liked Songs', role: 'Library feature', initials: 'LS', stars: 0 },
+  { text: 'Search by song title or artist to find tracks in the included library.', name: 'Song Search', role: 'Discovery feature', initials: 'SS', stars: 0 },
+  { text: 'Create named playlists stored locally in this browser.', name: 'Personal Playlists', role: 'Browser feature', initials: 'PL', stars: 0 },
+  { text: 'Load a public YouTube playlist in the embedded player when available.', name: 'YouTube Player', role: 'External embed', initials: 'YT', stars: 0 },
 ];
 
 // ═══════════════════════════════════════════════════════════
