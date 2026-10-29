@@ -19,11 +19,11 @@ const SONGS = [
   { id: 6,  title: 'Not Guilty',      artist: 'Dhanda Nyoliwala',       album: 'Kohram',              genre: 'hindi',    mood: 'chill',      src: 'Songs/song4.mp3',   cover: 'Images/c4.png',  duration: '3:04', plays: 2055, year: 2026 },
   { id: 7,  title: 'Kohram Intro',    artist: 'Dhanda Nyoliwala',       album: 'Kohram',              genre: 'haryanvi', mood: 'party',      src: 'Songs/song7.mp3',   cover: 'Images/c7.png',  duration: '3:11', plays: 2785, year: 2025 },
   { id: 8,  title: 'Pagal Banawe',    artist: 'Bali Sharma',            album: 'Sinta',               genre: 'haryanvi', mood: 'party',      src: 'Songs/Song8.mp3',   cover: 'Images/c8.png',  duration: '3:39', plays: 2785, year: 2024 },
-  { id: 10, title: 'Tough',           artist: 'Krish Rao',              album: 'Tough',               genre: 'haryanvi', mood: 'energetic',  src: 'Songs/song10.mp3',  cover: 'Images/c10.png', duration: '2:39', plays: 1200, year: 2026 },
-  { id: 11, title: 'Do Numbari',      artist: 'Dhanda Nyoliwala',       album: 'Mirzapur The Movie',  genre: 'haryanvi', mood: 'aggressive', src: 'Songs/song11.mp3',  cover: 'Images/c11.png', duration: '2:43', plays: 3450, year: 2026 },
-  { id: 12, title: '9:45',            artist: 'Prabh Singh',            album: '9:45',                genre: 'punjabi',  mood: 'romantic',   src: 'Songs/song12.mp3',  cover: 'Images/c12.png', duration: '1:57', plays: 8900, year: 2023 },
-  { id: 13, title: 'Godhe 3',         artist: 'Masoom Sharma',          album: 'Godhe 3',             genre: 'haryanvi', mood: 'energetic',  src: 'Songs/song14.mp3',  cover: 'Images/c14.png', duration: '2:50', plays: 2100, year: 2025 },
-  { id: 14, title: 'Main Vohe',       artist: 'Masoom Sharma',          album: 'Main Vohe',           genre: 'haryanvi', mood: 'sad',        src: 'Songs/song13.mp3',  cover: 'Images/c13.png', duration: '3:10', plays: 1540, year: 2026 },
+  { id: 10, title: 'Tough',           artist: 'Krish Rao',              album: 'Tough',               genre: 'haryanvi', mood: 'energetic',  src: 'Songs/song10.mp3',  cover: 'Images/c7.png', duration: '2:39', plays: 1200, year: 2026 },
+  { id: 11, title: 'Do Numbari',      artist: 'Dhanda Nyoliwala',       album: 'Mirzapur The Movie',  genre: 'haryanvi', mood: 'aggressive', src: 'Songs/song11.mp3',  cover: 'Images/c3.png', duration: '2:43', plays: 3450, year: 2026 },
+  { id: 12, title: '9:45',            artist: 'Prabh Singh',            album: '9:45',                genre: 'punjabi',  mood: 'romantic',   src: 'Songs/song12.mp3',  cover: 'Images/c2.png', duration: '1:57', plays: 8900, year: 2023 },
+  { id: 13, title: 'Godhe 3',         artist: 'Masoom Sharma',          album: 'Godhe 3',             genre: 'haryanvi', mood: 'energetic',  src: 'Songs/song14.mp3',  cover: 'Images/c8.png', duration: '2:50', plays: 2100, year: 2025 },
+  { id: 14, title: 'Main Vohe',       artist: 'Masoom Sharma',          album: 'Main Vohe',           genre: 'haryanvi', mood: 'sad',        src: 'Songs/song13.mp3',  cover: 'Images/c6.png', duration: '3:10', plays: 1540, year: 2026 },
 ];
 
 const ARTISTS = [
@@ -56,49 +56,76 @@ const MOODS = [
 ];
 
 const FEATURES = [
-  { icon: '📴', title: 'Offline Listening',     desc: 'Download your favorites and enjoy music without an internet connection, anytime.',       color: '#7C3AED' },
-  { icon: '🎧', title: 'Hi-Fi Audio Quality',   desc: 'Experience crystal-clear sound with lossless audio up to 320kbps streaming.',            color: '#06B6D4' },
-  { icon: '🤖', title: 'Smart Recommendations', desc: 'Our AI learns your taste and curates personalized playlists just for you.',              color: '#10B981' },
-  { icon: '📱', title: 'Cross-Device Sync',     desc: 'Start on your phone, continue on your laptop. Your music follows you everywhere.',       color: '#F59E0B' },
-  { icon: '🎼', title: 'Custom Equalizer',      desc: 'Fine-tune your audio with a studio-grade 5-band equalizer for the perfect sound.',       color: '#EF4444' },
-  { icon: '🌈', title: 'Ambient Mood Lighting', desc: 'Let the music paint the room. Eight mood themes shift the entire visual atmosphere.',    color: '#8B5CF6' },
+  { icon: '🎵', title: 'Curated Music Library', desc: 'Browse the tracks currently included in this project and start listening in one click.', color: '#7C3AED' },
+  { icon: '🎧', title: 'Playback Controls', desc: 'Play, pause, skip, seek, change volume, shuffle, and repeat supported tracks.', color: '#06B6D4' },
+  { icon: '🌈', title: 'Ambient Mood Themes', desc: 'Choose a mood to change the interface atmosphere while you listen.', color: '#10B981' },
+  { icon: '💗', title: 'Liked Songs', desc: 'Save favorite tracks in this browser and return to them later.', color: '#F59E0B' },
+  { icon: '📚', title: 'Personal Playlists', desc: 'Create playlists and organize tracks locally in your browser.', color: '#EF4444' },
+  { icon: '🔎', title: 'Search & Queue', desc: 'Find tracks from the included library and manage what plays next.', color: '#8B5CF6' },
 ];
 
 const TESTIMONIALS = [
-  { text: 'SangeetHub completely changed how I experience music. The ambient mood lighting is unlike anything I\'ve seen.', name: 'Priya S.',  role: 'Music Enthusiast', initials: 'PS', stars: 5 },
-  { text: 'The audio quality is phenomenal and the interface feels so premium. Worth every penny!',                          name: 'Arjun K.',  role: 'DJ & Producer',    initials: 'AK', stars: 5 },
-  { text: 'I love how it recommends songs I never knew I needed. My daily commute is 10x better now.',                       name: 'Neha R.',   role: 'Software Engineer', initials: 'NR', stars: 5 },
-  { text: 'The cross-device sync is seamless. I start a playlist on my phone and it\'s already playing on my laptop.',      name: 'Rohan M.',  role: 'Content Creator',  initials: 'RM', stars: 5 },
-  { text: 'Best music app I\'ve used. The mood lighting feature makes each genre feel completely different!',                name: 'Kavya T.',  role: 'Traveller',        initials: 'KT', stars: 5 },
-  { text: 'The equalizer controls are incredible. I can finally tune my music to exactly how I like it.',                   name: 'Vikram P.', role: 'Audiophile',       initials: 'VP', stars: 5 },
+  { text: 'Choose an ambient theme to change the visual atmosphere while listening.', name: 'Ambient Themes', role: 'Visual feature', initials: 'AT', stars: 5 },
+  { text: 'Start a track and control playback, seeking, volume, shuffle, and repeat.', name: 'Playback Controls', role: 'Player feature', initials: 'PC', stars: 5 },
+  { text: 'Keep favorite songs in one place using the Liked Songs library.', name: 'Liked Songs', role: 'Library feature', initials: 'LS', stars: 5 },
+  { text: 'Search by song title or artist to find tracks in the included library.', name: 'Song Search', role: 'Discovery feature', initials: 'SS', stars: 5 },
+  { text: 'Create named playlists stored locally in this browser.', name: 'Personal Playlists', role: 'Browser feature', initials: 'PL', stars: 5 },
+  { text: 'Load a public YouTube playlist in the embedded player when available.', name: 'YouTube Player', role: 'External embed', initials: 'YT', stars: 5 },
 ];
 
 // ═══════════════════════════════════════════════════════════
+function safeStorageGet(key) {
+  try { return window.localStorage.getItem(key); }
+  catch (error) { console.warn('Local storage is unavailable:', error); return null; }
+}
+function safeStorageSet(key, value) {
+  try { window.localStorage.setItem(key, String(value)); return true; }
+  catch (error) { console.warn('Could not save local setting:', key, error); return false; }
+}
+function safeStorageRemove(key) {
+  try { window.localStorage.removeItem(key); return true; }
+  catch (error) { console.warn('Could not clear local setting:', key, error); return false; }
+}
+function readStoredJSON(key, fallback) {
+  const raw = safeStorageGet(key);
+  if (raw === null || raw === '') return fallback;
+  try { return JSON.parse(raw); }
+  catch (error) { safeStorageRemove(key); return fallback; }
+}
+function readStoredArray(key) {
+  const value = readStoredJSON(key, []);
+  return Array.isArray(value) ? value : [];
+}
+function readStoredObject(key, fallback = null) {
+  const value = readStoredJSON(key, fallback);
+  return value && typeof value === 'object' && !Array.isArray(value) ? value : fallback;
+}
+
 // APP STATE
 // ═══════════════════════════════════════════════════════════
 
 const state = {
   currentPage: 'landing',
-  mood: localStorage.getItem('sh_mood') || 'default',
-  theme: localStorage.getItem('sh_theme') || 'dark',
+  mood: safeStorageGet('sh_mood') || 'default',
+  theme: safeStorageGet('sh_theme') || 'dark',
   player: {
     currentSongIndex: -1,
     isPlaying: false,
     isShuffle: false,
     repeatMode: 0, // 0=off, 1=all, 2=one
-    volume: parseFloat(localStorage.getItem('sh_volume') || '0.8'),
+    volume: (() => { const v = Number(safeStorageGet('sh_volume')); return Number.isFinite(v) ? Math.max(0, Math.min(1, v)) : 0.8; })(),
     progress: 0,
     duration: 0,
     queue: [...SONGS],
     history: [],
   },
-  favorites: new Set(JSON.parse(localStorage.getItem('sh_favorites') || '[]')),
-  playlists: JSON.parse(localStorage.getItem('sh_playlists') || '[]'),
-  listenHistory: JSON.parse(localStorage.getItem('sh_history') || '[]'),
-  user: JSON.parse(localStorage.getItem('sh_user') || 'null'),
-  recentSearches: JSON.parse(localStorage.getItem('sh_searches') || '[]'),
-  totalPlayed: parseInt(localStorage.getItem('sh_totalPlayed') || '0'),
-  totalMinutes: parseInt(localStorage.getItem('sh_totalMinutes') || '0'),
+  favorites: new Set(readStoredArray('sh_favorites')),
+  playlists: readStoredArray('sh_playlists'),
+  listenHistory: readStoredArray('sh_history'),
+  user: readStoredObject('sh_user', null),
+  recentSearches: readStoredArray('sh_searches'),
+  totalPlayed: Math.max(0, Number.parseInt(safeStorageGet('sh_totalPlayed') || '0', 10) || 0),
+  totalMinutes: Math.max(0, Number.parseInt(safeStorageGet('sh_totalMinutes') || '0', 10) || 0),
   contextSongId: null,
   isDraggingProgress: false,
   isDraggingVolume: false,
@@ -970,8 +997,8 @@ function playSong(index) {
   // Track history
   state.totalPlayed++;
   state.listenHistory = [song.id, ...state.listenHistory.filter(id => id !== song.id)].slice(0, 50);
-  localStorage.setItem('sh_history', JSON.stringify(state.listenHistory));
-  localStorage.setItem('sh_totalPlayed', state.totalPlayed);
+  safeStorageSet('sh_history', JSON.stringify(state.listenHistory));
+  safeStorageSet('sh_totalPlayed', state.totalPlayed);
 
   updatePlayerUI();
   updateQueueUI();
@@ -1078,7 +1105,7 @@ function onTrackEnded() {
   // Track minutes
   if (DOM.audio.duration && isFinite(DOM.audio.duration)) {
     state.totalMinutes += Math.floor(DOM.audio.duration / 60);
-    localStorage.setItem('sh_totalMinutes', state.totalMinutes);
+    safeStorageSet('sh_totalMinutes', state.totalMinutes);
   }
   if (repeatMode === 2) { DOM.audio.currentTime = 0; DOM.audio.play(); }
   else nextSong();
@@ -1116,7 +1143,7 @@ function setVolume(v) {
   v = Math.max(0, Math.min(1, v));
   DOM.audio.volume = v;
   state.player.volume = v;
-  localStorage.setItem('sh_volume', v);
+  safeStorageSet('sh_volume', v);
   const pct = v * 100;
   if (DOM.volumeFill) DOM.volumeFill.style.width = pct + '%';
   if (DOM.fsVolFill) DOM.fsVolFill.style.width = pct + '%';
@@ -1240,7 +1267,7 @@ function updateMoodFromSong(song) {
 
 function applyMood(mood, animate = true) {
   state.mood = mood;
-  localStorage.setItem('sh_mood', mood);
+  safeStorageSet('sh_mood', mood);
   document.documentElement.setAttribute('data-mood', mood);
 
   // Update mood buttons
@@ -1284,7 +1311,7 @@ function toggleFavorite(songId) {
     state.favorites.add(songId);
     showToast('Added to liked songs ♥', 'success');
   }
-  localStorage.setItem('sh_favorites', JSON.stringify([...state.favorites]));
+  safeStorageSet('sh_favorites', JSON.stringify([...state.favorites]));
   updatePlayerUI();
   if (state.currentPage === 'favorites') renderFavorites();
   if (state.currentPage === 'dashboard') updateDashboard();
@@ -1329,7 +1356,7 @@ function initSearch() {
         attachTrackRowEvents(resultsEl.querySelector('.tracks-list'));
         // Save search
         state.recentSearches = [v, ...state.recentSearches.filter(s => s !== v)].slice(0, 8);
-        localStorage.setItem('sh_searches', JSON.stringify(state.recentSearches));
+        safeStorageSet('sh_searches', JSON.stringify(state.recentSearches));
       }
     }, 300));
   }
@@ -1393,7 +1420,7 @@ function initAuth() {
     if (state.user) {
       // Logout
       state.user = null;
-      localStorage.removeItem('sh_user');
+      safeStorageRemove('sh_user');
       updateAuthUI();
       showToast('Signed out successfully', 'info');
     } else {
@@ -1424,7 +1451,7 @@ function initAuth() {
       ? { name: 'Admin', email, plan: 'Premium', isAdmin: true }
       : { name: email.split('@')[0], email, plan: 'Free' };
     state.user = user;
-    localStorage.setItem('sh_user', JSON.stringify(user));
+    safeStorageSet('sh_user', JSON.stringify(user));
     updateAuthUI();
     closeModal(DOM.authModal);
     showToast(`Welcome back, ${user.name}! 🎵`, 'success');
@@ -1440,7 +1467,7 @@ function initAuth() {
     if (password.length < 6) { showToast('Password must be at least 6 characters', 'error'); return; }
     const user = { name, email, plan: 'Free' };
     state.user = user;
-    localStorage.setItem('sh_user', JSON.stringify(user));
+    safeStorageSet('sh_user', JSON.stringify(user));
     updateAuthUI();
     closeModal(DOM.authModal);
     showToast(`Welcome, ${name}! 🎵`, 'success');
@@ -1489,7 +1516,7 @@ function initTheme() {
   applyTheme(state.theme);
   DOM.themeToggle?.addEventListener('click', () => {
     state.theme = state.theme === 'dark' ? 'light' : 'dark';
-    localStorage.setItem('sh_theme', state.theme);
+    safeStorageSet('sh_theme', state.theme);
     applyTheme(state.theme);
   });
 }
@@ -1520,7 +1547,7 @@ function initModals() {
       songs: [], created: new Date().toISOString()
     };
     state.playlists.push(pl);
-    localStorage.setItem('sh_playlists', JSON.stringify(state.playlists));
+    safeStorageSet('sh_playlists', JSON.stringify(state.playlists));
     updateSidebarPlaylists();
     closeModal(DOM.playlistModal);
     DOM.playlistForm.reset();
@@ -1588,7 +1615,7 @@ function initSidebarCollapse() {
   DOM.userMenuBtn?.addEventListener('click', () => {
     if (state.user) {
       state.user = null;
-      localStorage.removeItem('sh_user');
+      safeStorageRemove('sh_user');
       updateAuthUI();
       showToast('Signed out', 'info');
     } else {
