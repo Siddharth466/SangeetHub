@@ -1605,8 +1605,31 @@ function initModals() {
     if (state.currentPage === 'dashboard') updateDashboard();
   });
 
-  // YouTube modal
+  // YouTube playlist embed.
+  DOM.connectYoutubePlaylist?.addEventListener('click', () => {
+    DOM.sidebar?.classList.remove('mobile-open');
+    openModal(DOM.ytModal);
+    setTimeout(() => DOM.ytPlaylistUrl?.focus(), 50);
+  });
   DOM.ytModalClose?.addEventListener('click', () => closeModal(DOM.ytModal));
+  DOM.ytConnectBtn?.addEventListener('click', connectYouTubePlaylist);
+  DOM.ytPlaylistUrl?.addEventListener('keydown', event => {
+    if (event.key === 'Enter') { event.preventDefault(); connectYouTubePlaylist(); }
+  });
+  DOM.addToPlaylistModalClose?.addEventListener('click', () => closeModal(DOM.addToPlaylistModal));
+  DOM.addToPlaylistForm?.addEventListener('submit', event => {
+    event.preventDefault();
+    const pl = state.playlists.find(item => String(item.id) === String(DOM.targetPlaylistSelect?.value));
+    const song = SONGS.find(item => item.id === state.contextSongId);
+    if (!pl || !song) { showToast('Choose a playlist and a song first.', 'error'); return; }
+    if (!Array.isArray(pl.songs)) pl.songs = [];
+    if (!pl.songs.includes(song.id)) pl.songs.push(song.id);
+    safeStorageSet('sh_playlists', JSON.stringify(state.playlists));
+    updateSidebarPlaylists();
+    closeModal(DOM.addToPlaylistModal);
+    showToast('Added "' + song.title + '" to "' + pl.name + '".', 'success');
+    if (state.currentPage === 'library') renderLibrary();
+  });
 
   // Click outside
   $$('.modal-overlay').forEach(overlay => {
@@ -1630,9 +1653,47 @@ function openModal(modal) {
 }
 function closeModal(modal) {
   modal?.classList.add('hidden');
+  if (modal === DOM.ytModal) stopYouTubePlaylist();
   if (!DOM.fullscreenPlayer || DOM.fullscreenPlayer.classList.contains('hidden')) {
     document.body.style.overflow = '';
   }
+}
+
+function extractYouTubePlaylistId(input) {
+  const value = String(input || '').trim();
+  if (/^[A-Za-z0-9_-]{10,100}$/.test(value)) return value;
+  let url;
+  try { url = new URL(value); } catch { return null; }
+  const host = url.hostname.toLowerCase().replace(/^www\./, '');
+  const allowedHosts = ['youtube.com', 'music.youtube.com', 'm.youtube.com', 'youtube-nocookie.com'];
+  if (!allowedHosts.some(domain => host === domain || host.endsWith('.' + domain))) return null;
+  const id = url.searchParams.get('list');
+  return id && /^[A-Za-z0-9_-]{10,100}$/.test(id) ? id : null;
+}
+function connectYouTubePlaylist() {
+  const input = DOM.ytPlaylistUrl?.value.trim();
+  if (!input) { showToast('Paste a public YouTube playlist URL or playlist ID.', 'warning'); return; }
+  const playlistId = extractYouTubePlaylistId(input);
+  if (!playlistId) {
+    DOM.ytPlaylistUrl?.setAttribute('aria-invalid', 'true');
+    showToast('That playlist URL or ID looks invalid. Use a YouTube playlist link containing list=...', 'error');
+    return;
+  }
+  DOM.ytPlaylistUrl?.setAttribute('aria-invalid', 'false');
+  if (!DOM.ytPlaylistFrame || !DOM.ytEmbedWrap) {
+    showToast('The embedded playlist player is unavailable.', 'error');
+    return;
+  }
+  DOM.ytPlaylistFrame.src = 'https://www.youtube-nocookie.com/embed/videoseries?list=' + encodeURIComponent(playlistId) + '&autoplay=1&playsinline=1&rel=0';
+  DOM.ytEmbedWrap.classList.remove('hidden');
+  DOM.ytModal?.classList.add('yt-playing');
+  showToast('Playlist loaded. If autoplay is blocked, press Play in the YouTube player.', 'success');
+}
+function stopYouTubePlaylist() {
+  if (DOM.ytPlaylistFrame) DOM.ytPlaylistFrame.src = 'about:blank';
+  DOM.ytEmbedWrap?.classList.add('hidden');
+  DOM.ytModal?.classList.remove('yt-playing');
+  DOM.ytPlaylistUrl?.setAttribute('aria-invalid', 'false');
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1720,6 +1781,20 @@ function initContextMenu() {
   });
   $('ctxLike')?.addEventListener('click', () => {
     if (state.contextSongId !== null) toggleFavorite(state.contextSongId);
+  });
+  $('ctxAddPlaylist')?.addEventListener('click', () => {
+    if (state.contextSongId === null) return;
+    if (!state.playlists.length) {
+      showToast('Create a playlist first, then add songs from the context menu.', 'info');
+      openModal(DOM.playlistModal);
+      return;
+    }
+    if (DOM.targetPlaylistSelect) {
+      DOM.targetPlaylistSelect.innerHTML = state.playlists.map(pl =>
+        '<option value="' + escapeHtml(String(pl.id)) + '">' + escapeHtml(pl.name) + '</option>'
+      ).join('');
+    }
+    openModal(DOM.addToPlaylistModal);
   });
   $('ctxQueue')?.addEventListener('click', () => {
     if (state.contextSongId === null) return;
