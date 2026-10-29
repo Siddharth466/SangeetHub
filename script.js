@@ -106,6 +106,9 @@ function readStoredObject(key, fallback = null) {
 
 const state = {
   currentPage: 'landing',
+  pageHistory: ['landing'],
+  pageHistoryIndex: 0,
+  activePlaylistId: null,
   mood: safeStorageGet('sh_mood') || 'default',
   theme: safeStorageGet('sh_theme') || 'dark',
   player: {
@@ -191,6 +194,10 @@ function cacheDOM() {
     playlistName: $('playlistName'), playlistDesc: $('playlistDesc'),
     createPlaylistBtn: $('createPlaylistBtn'), createPlaylistSidebar: $('createPlaylistSidebar'),
     ytModal: $('ytModal'), ytModalClose: $('ytModalClose'), ytConnectBtn: $('ytConnectBtn'),
+    connectYoutubePlaylist: $('connectYoutubePlaylist'), ytPlaylistUrl: $('ytPlaylistUrl'),
+    ytEmbedWrap: $('ytEmbedWrap'), ytPlaylistFrame: $('ytPlaylistFrame'),
+    addToPlaylistModal: $('addToPlaylistModal'), addToPlaylistModalClose: $('addToPlaylistModalClose'),
+    addToPlaylistForm: $('addToPlaylistForm'), targetPlaylistSelect: $('targetPlaylistSelect'),
     // toast
     toastContainer: $('toastContainer'),
     // landing
@@ -229,6 +236,7 @@ function animateLoader() {
 }
 
 function initApp() {
+  updateHistoryControls();
   DOM.loader.classList.add('fade-out');
   setTimeout(() => { if (DOM.loader) DOM.loader.style.display = 'none'; }, 700);
   DOM.app.classList.remove('hidden');
@@ -595,13 +603,20 @@ function initNavigation() {
   $$('.nav-item').forEach(item => {
     item.addEventListener('click', () => navigateTo(item.dataset.page));
   });
-  $('histBack')?.addEventListener('click', () => window.history.back());
-  $('histForward')?.addEventListener('click', () => window.history.forward());
+  $('histBack')?.addEventListener('click', () => navigateHistory(-1));
+  $('histForward')?.addEventListener('click', () => navigateHistory(1));
+  document.querySelector('.brand[data-page]')?.addEventListener('click', event => { event.preventDefault(); navigateTo('landing'); });
 }
 
-function navigateTo(page) {
+function navigateTo(page, options = {}) {
   if (!page) return;
+  if (!options.skipHistory && page !== state.currentPage) {
+    state.pageHistory = state.pageHistory.slice(0, state.pageHistoryIndex + 1);
+    state.pageHistory.push(page);
+    state.pageHistoryIndex = state.pageHistory.length - 1;
+  }
   state.currentPage = page;
+  updateHistoryControls();
 
   // Update sidebar active state
   $$('.nav-item').forEach(item => {
@@ -628,6 +643,18 @@ function navigateTo(page) {
   DOM.sidebar?.classList.remove('mobile-open');
   // Scroll to top
   DOM.pageContent?.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function navigateHistory(direction) {
+  const nextIndex = state.pageHistoryIndex + direction;
+  if (nextIndex < 0 || nextIndex >= state.pageHistory.length) return;
+  state.pageHistoryIndex = nextIndex;
+  navigateTo(state.pageHistory[nextIndex], { skipHistory: true });
+}
+function updateHistoryControls() {
+  const back = $('histBack'), forward = $('histForward');
+  if (back) back.disabled = state.pageHistoryIndex <= 0;
+  if (forward) forward.disabled = state.pageHistoryIndex >= state.pageHistory.length - 1;
 }
 
 // ═══════════════════════════════════════════════════════════
