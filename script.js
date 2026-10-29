@@ -821,6 +821,28 @@ function renderFavorites() {
 function renderLibrary() {
   const grid = $('libraryGrid');
   if (!grid) return;
+  const activePlaylist = state.playlists.find(pl => String(pl.id) === String(state.activePlaylistId));
+  if (activePlaylist) {
+    const songs = (Array.isArray(activePlaylist.songs) ? activePlaylist.songs : [])
+      .map(id => SONGS.find(song => song.id === Number(id))).filter(Boolean);
+    grid.style.display = 'block';
+    grid.innerHTML = '<div class="playlist-detail-view">' +
+      '<button class="btn-ghost playlist-back-btn" id="backToLibrary"><i class="fas fa-arrow-left"></i> Back to Library</button>' +
+      '<div class="playlist-detail-header"><div class="library-card-icon"><i class="fas fa-music"></i></div>' +
+      '<div><h2>' + escapeHtml(activePlaylist.name) + '</h2><p>' + songs.length + ' songs</p></div>' +
+      '<button class="btn-primary" id="playPlaylistBtn" ' + (songs.length ? '' : 'disabled') + '><i class="fas fa-play"></i> Play Playlist</button></div>' +
+      '<div class="tracks-list" id="playlistTrackList">' + (songs.length ? songs.map((song, i) => buildTrackRow(song, i + 1)).join('') : '<p class="playlist-empty">This playlist is empty. Use a song context menu to add tracks.</p>') + '</div></div>';
+    $('backToLibrary')?.addEventListener('click', () => { state.activePlaylistId = null; renderLibrary(); });
+    $('playPlaylistBtn')?.addEventListener('click', () => {
+      if (!songs.length) return;
+      state.player.queue = songs;
+      playSong(0);
+      showToast('Playing playlist ' + activePlaylist.name, 'success');
+    });
+    attachTrackRowEvents($('playlistTrackList'));
+    return;
+  }
+  grid.style.display = '';
   const items = [
     { icon: '💕', name: 'Liked Songs', meta: `${state.favorites.size} songs`, color: '#EC4899', action: () => navigateTo('favorites') },
     ...state.playlists.map(pl => ({
@@ -1621,14 +1643,23 @@ function updateSidebarPlaylists() {
   const container = $('sidebarPlaylists');
   if (!container) return;
   container.innerHTML = state.playlists.map(pl => `
-    <div class="playlist-sidebar-item" data-pl-id="${pl.id}" role="button" tabindex="0">
-      <i class="fas fa-music"></i>
+    <div class="playlist-sidebar-item" data-pl-id="${escapeHtml(String(pl.id))}" role="button" tabindex="0">
+      <i class="fas fa-music" aria-hidden="true"></i>
       <span>${escapeHtml(pl.name)}</span>
     </div>`).join('');
+  container.querySelectorAll('.playlist-sidebar-item').forEach(item => {
+    const open = () => showPlaylistDetail(state.playlists.find(pl => String(pl.id) === item.dataset.plId));
+    item.addEventListener('click', open);
+    item.addEventListener('keydown', event => {
+      if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(); }
+    });
+  });
 }
 
 function showPlaylistDetail(pl) {
-  showToast(`Opening "${pl.name}"`, 'info');
+  if (!pl) return;
+  state.activePlaylistId = pl.id;
+  navigateTo('library');
 }
 
 // ═══════════════════════════════════════════════════════════
