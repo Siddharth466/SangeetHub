@@ -39,10 +39,10 @@ function Icon({ name }: { name: string }) {
 
 function CoverArt({ track, large = false }: { track: Track; large?: boolean }) {
   const style: CSSProperties = track.coverUrl
-    ? { backgroundImage: \`linear-gradient(145deg, rgba(12,10,20,.12), rgba(12,10,20,.48)), url("\${track.coverUrl}")\` }
+    ? { backgroundImage: `linear-gradient(145deg, rgba(12,10,20,.12), rgba(12,10,20,.48)), url("${track.coverUrl}")` }
     : {};
   return (
-    <div className={\`album-art art-\${track.accent} \${large ? "album-art-large" : ""}\`} style={style} aria-label={\`Cover art for \${track.album}\`} role="img">
+    <div className={`album-art art-${track.accent} ${large ? "album-art-large" : ""}`} style={style} aria-label={`Cover art for ${track.album}`} role="img">
       {!track.coverUrl && <><span className="art-orbit art-orbit-one" /><span className="art-orbit art-orbit-two" /><span className="art-glyph">♪</span><span className="art-index">SH / 0{track.id.replace(/\D/g, "").slice(-1) || "1"}</span></>}
     </div>
   );
@@ -116,7 +116,7 @@ export default function MusicWorkspace() {
     const timer = window.setTimeout(async () => {
       setSearchLoading(true);
       try {
-        const response = await fetch(\`/api/music/search?q=\${encodeURIComponent(query.trim())}\`, { cache: "no-store" });
+        const response = await fetch(`/api/music/search?q=${encodeURIComponent(query.trim())}`, { cache: "no-store" });
         const payload = await response.json() as { tracks?: Track[]; providerConfigured?: boolean; error?: string };
         if (!response.ok) throw new Error(payload.error || "Search could not be completed.");
         if (!cancelled) {
@@ -209,7 +209,7 @@ export default function MusicWorkspace() {
 
   async function enqueueRelated(track: Track) {
     try {
-      const response = await fetch(\`/api/music/related?trackId=\${encodeURIComponent(track.id)}\`, { cache: "no-store" });
+      const response = await fetch(`/api/music/related?trackId=${encodeURIComponent(track.id)}`, { cache: "no-store" });
       if (!response.ok) return;
       const payload = await response.json() as { tracks?: Track[] };
       const related = (payload.tracks || []).filter((candidate) =>
@@ -246,7 +246,7 @@ export default function MusicWorkspace() {
 
   function addToQueue(track: Track) {
     setQueue((existing) => existing.some((item) => item.id === track.id) ? existing : [...existing, track]);
-    showNotice(\`Added “\${track.title}” to your queue.\`);
+    showNotice(`Added “${track.title}” to your queue.`);
   }
 
   function goToQueueIndex(index: number) {
@@ -306,7 +306,7 @@ export default function MusicWorkspace() {
     const name = playlistName.trim();
     if (!name) return;
     const playlist: Playlist = {
-      id: \`playlist-\${Date.now()}\`,
+      id: `playlist-${Date.now()}`,
       name,
       trackIds: trackToAdd ? [trackToAdd.id] : [],
     };
@@ -316,7 +316,7 @@ export default function MusicWorkspace() {
     setPlaylistDialog(null);
     setActivePlaylistId(playlist.id);
     setView("playlists");
-    showNotice(\`Playlist “\${name}” created.\`);
+    showNotice(`Playlist “${name}” created.`);
   }
 
   function addTrackToPlaylist(event: FormEvent<HTMLFormElement>) {
@@ -403,7 +403,7 @@ export default function MusicWorkspace() {
       </header>
 
       <div className="app-grid">
-        <aside className={\`sidebar \${mobileNavOpen ? "sidebar-open" : ""}\`}>
+        <aside className={`sidebar ${mobileNavOpen ? "sidebar-open" : ""}`}>
           <div className="side-label">MENU</div>
           <nav className="primary-nav" aria-label="Main navigation">
             <button className={view === "home" ? "nav-link active" : "nav-link"} onClick={() => { setView("home"); setActivePlaylistId(""); setQuery(""); setGenre("All"); setMobileNavOpen(false); }}>
@@ -445,7 +445,7 @@ export default function MusicWorkspace() {
             <div>
               <p className="eyebrow">YOUR MUSIC SPACE</p>
               <h1>{view === "favorites" ? "Your favorites." : view === "playlists" && activePlaylist ? activePlaylist.name : view === "playlists" ? "Your playlists." : "Find your next repeat."}</h1>
-              <p className="welcome-subtitle">{view === "favorites" ? "The songs you’ve saved for later." : view === "playlists" && activePlaylist ? \`\${activePlaylist.trackIds.length} songs in this playlist\` : view === "playlists" ? "Make a collection for every mood." : "Search a track, press play, and let the queue do the rest."}</p>
+              <p className="welcome-subtitle">{view === "favorites" ? "The songs you’ve saved for later." : view === "playlists" && activePlaylist ? `${activePlaylist.trackIds.length} songs in this playlist` : view === "playlists" ? "Make a collection for every mood." : "Search a track, press play, and let the queue do the rest."}</p>
             </div>
             <div className="welcome-actions">
               <span className="quiet-chip"><span className="live-pulse" /> LIGHTWEIGHT PLAYER</span>
@@ -472,7 +472,7 @@ export default function MusicWorkspace() {
                   <button className="create-button" onClick={() => setPlaylistDialog("create")}><Icon name="plus" /> Create playlist</button>
                 </div>
               ) : playlists.map((playlist, index) => (
-                <button key={playlist.id} className={\`playlist-card playlist-tone-\${index % 4}\`} onClick={() => setActivePlaylistId(playlist.id)}>
+                <button key={playlist.id} className={`playlist-card playlist-tone-${index % 4}`} onClick={() => setActivePlaylistId(playlist.id)}>
                   <span className="playlist-card-icon"><Icon name="music" /></span>
                   <span className="playlist-card-title">{playlist.name}</span>
                   <span className="playlist-card-meta">{playlist.trackIds.length} songs</span>
@@ -483,8 +483,8 @@ export default function MusicWorkspace() {
           ) : (
             <section className="track-section">
               <div className="section-heading">
-                <div><p className="eyebrow">{view === "favorites" ? "SAVED BY YOU" : view === "playlists" ? "YOUR MIX" : query ? "SEARCH RESULTS" : "PICKED FOR YOU"}</p><h2>{query ? \`Results for “\${query}”\` : view === "favorites" ? "Liked songs" : activePlaylist ? "Playlist tracks" : "Discover music"}</h2></div>
-                <span className="result-count">{searchLoading ? "Searching…" : \`\${visibleTracks.length} tracks\`}</span>
+                <div><p className="eyebrow">{view === "favorites" ? "SAVED BY YOU" : view === "playlists" ? "YOUR MIX" : query ? "SEARCH RESULTS" : "PICKED FOR YOU"}</p><h2>{query ? `Results for “${query}”` : view === "favorites" ? "Liked songs" : activePlaylist ? "Playlist tracks" : "Discover music"}</h2></div>
+                <span className="result-count">{searchLoading ? "Searching…" : `${visibleTracks.length} tracks`}</span>
               </div>
 
               {searchLoading ? <div className="loading-line"><span /></div> : visibleTracks.length === 0 ? (
@@ -499,7 +499,7 @@ export default function MusicWorkspace() {
                     <article className={currentTrack?.id === track.id ? "track-card playing-card" : "track-card"} key={track.id}>
                       <div className="track-art-wrap">
                         <CoverArt track={track} />
-                        <button className="cover-play-button" onClick={() => playTrack(track)} aria-label={\`Play \${track.title}\`}><Icon name="play" /></button>
+                        <button className="cover-play-button" onClick={() => playTrack(track)} aria-label={`Play ${track.title}`}><Icon name="play" /></button>
                         <span className="track-number">{String(index + 1).padStart(2, "0")}</span>
                       </div>
                       <div className="track-card-body">
@@ -507,8 +507,8 @@ export default function MusicWorkspace() {
                         <div className="track-card-meta"><span>{track.album}</span><span>{track.durationSeconds ? formatTime(track.durationSeconds) : "—"}</span></div>
                         <div className="track-card-actions">
                           <button className={favorites.includes(track.id) ? "card-icon-button liked" : "card-icon-button"} onClick={() => toggleFavorite(track)} aria-label={favorites.includes(track.id) ? "Remove from favorites" : "Add to favorites"}><Icon name="heart" /></button>
-                          <button className="card-icon-button" onClick={() => openAddToPlaylist(track)} aria-label={\`Add \${track.title} to a playlist\`}><Icon name="plus" /></button>
-                          <button className="card-icon-button" onClick={() => addToQueue(track)} aria-label={\`Add \${track.title} to queue\`}><Icon name="queue" /></button>
+                          <button className="card-icon-button" onClick={() => openAddToPlaylist(track)} aria-label={`Add ${track.title} to a playlist`}><Icon name="plus" /></button>
+                          <button className="card-icon-button" onClick={() => addToQueue(track)} aria-label={`Add ${track.title} to queue`}><Icon name="queue" /></button>
                         </div>
                       </div>
                     </article>
@@ -527,7 +527,7 @@ export default function MusicWorkspace() {
           </div>}
           <div className="queue-list">
             {queue.length === 0 ? <div className="queue-empty"><Icon name="queue" /><p>Your queue is empty.</p><small>Play a song and similar tracks will be added automatically.</small></div> : queue.map((track, index) => (
-              <button className={index === queueIndex ? "queue-row queue-row-current" : "queue-row"} key={\`\${track.id}-\${index}\`} onClick={() => goToQueueIndex(index)}>
+              <button className={index === queueIndex ? "queue-row queue-row-current" : "queue-row"} key={`${track.id}-${index}`} onClick={() => goToQueueIndex(index)}>
                 <CoverArt track={track} />
                 <span className="queue-row-copy"><strong>{track.title}</strong><small>{track.artist}</small></span>
                 {index === queueIndex ? <span className="queue-playing-dot">●</span> : <span className="queue-row-time">{formatTime(track.durationSeconds)}</span>}
@@ -553,10 +553,10 @@ export default function MusicWorkspace() {
             <button className="transport-button" onClick={playNext} aria-label="Next track" disabled={!currentTrack}><Icon name="next" /></button>
             <button className={repeat ? "transport-button active" : "transport-button"} onClick={() => setRepeat((value) => !value)} aria-label="Toggle repeat"><Icon name="repeat" /></button>
           </div>
-          <div className="progress-row"><span>{formatTime(currentTime)}</span><input aria-label="Seek through track" type="range" min="0" max={Math.max(duration, 1)} step="0.1" value={Math.min(currentTime, Math.max(duration, 1))} onChange={(event) => { const value = Number(event.target.value); if (audioRef.current) audioRef.current.currentTime = value; setCurrentTime(value); }} style={{ "--progress": \`\${progress}%\` } as CSSProperties} /><span>{formatTime(duration)}</span></div>
+          <div className="progress-row"><span>{formatTime(currentTime)}</span><input aria-label="Seek through track" type="range" min="0" max={Math.max(duration, 1)} step="0.1" value={Math.min(currentTime, Math.max(duration, 1))} onChange={(event) => { const value = Number(event.target.value); if (audioRef.current) audioRef.current.currentTime = value; setCurrentTime(value); }} style={{ "--progress": `${progress}%` } as CSSProperties} /><span>{formatTime(duration)}</span></div>
         </div>
 
-        <div className="player-extra"><span className="player-mode">{currentTrack?.streamUrl ? "BROWSER AUDIO" : "READY"} </span><Icon name="volume" /><input aria-label="Volume" className="volume-range" type="range" min="0" max="1" step="0.01" value={volume} onChange={(event) => setVolume(Number(event.target.value))} style={{ "--progress": \`\${volume * 100}%\` } as CSSProperties} /></div>
+        <div className="player-extra"><span className="player-mode">{currentTrack?.streamUrl ? "BROWSER AUDIO" : "READY"} </span><Icon name="volume" /><input aria-label="Volume" className="volume-range" type="range" min="0" max="1" step="0.01" value={volume} onChange={(event) => setVolume(Number(event.target.value))} style={{ "--progress": `${volume * 100}%` } as CSSProperties} /></div>
       </footer>
 
       {playlistDialog && (
