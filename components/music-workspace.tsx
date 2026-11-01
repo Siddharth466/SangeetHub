@@ -50,6 +50,7 @@ function CoverArt({ track, large = false }: { track: Track; large?: boolean }) {
 
 export default function MusicWorkspace() {
   const audioRef = useRef<HTMLAudioElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [tracks, setTracks] = useState<Track[]>(demoTracks);
   const [libraryTracks, setLibraryTracks] = useState<Track[]>(demoTracks);
   const [view, setView] = useState<View>("home");
@@ -164,6 +165,21 @@ export default function MusicWorkspace() {
     // Track changes and play/pause changes should both update the audio element.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPlaying, currentTrack?.id, currentTrack?.streamUrl, volume]);
+
+  useEffect(() => {
+    function handleGlobalKeys(event: KeyboardEvent) {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        searchInputRef.current?.focus();
+      }
+      if (event.key === "Escape" && document.activeElement === searchInputRef.current) {
+        setQuery("");
+        searchInputRef.current?.blur();
+      }
+    }
+    window.addEventListener("keydown", handleGlobalKeys);
+    return () => window.removeEventListener("keydown", handleGlobalKeys);
+  }, []);
 
   useEffect(() => {
     if (!toast) return;
@@ -373,6 +389,7 @@ export default function MusicWorkspace() {
         <label className="search-box">
           <Icon name="search" />
           <input
+            ref={searchInputRef}
             value={query}
             onChange={(event) => { setQuery(event.target.value); setView("home"); setActivePlaylistId(""); }}
             placeholder="Search songs, artists, or albums"
