@@ -89,8 +89,12 @@ export default function MusicWorkspace() {
         ));
       }
     } catch {
-      localStorage.removeItem("sangeethub:favorites");
-      localStorage.removeItem("sangeethub:playlists");
+      try {
+        localStorage.removeItem("sangeethub:favorites");
+        localStorage.removeItem("sangeethub:playlists");
+      } catch {
+        // Storage may be disabled by the browser; the in-memory app still works.
+      }
     } finally {
       setStorageReady(true);
     }
@@ -98,12 +102,12 @@ export default function MusicWorkspace() {
 
   useEffect(() => {
     if (!storageReady) return;
-    localStorage.setItem("sangeethub:favorites", JSON.stringify(favorites));
+    try { localStorage.setItem("sangeethub:favorites", JSON.stringify(favorites)); } catch { /* Keep favorites in memory if storage is blocked. */ }
   }, [favorites, storageReady]);
 
   useEffect(() => {
     if (!storageReady) return;
-    localStorage.setItem("sangeethub:playlists", JSON.stringify(playlists));
+    try { localStorage.setItem("sangeethub:playlists", JSON.stringify(playlists)); } catch { /* Keep playlists in memory if storage is blocked. */ }
   }, [playlists, storageReady]);
 
   useEffect(() => {
@@ -197,6 +201,8 @@ export default function MusicWorkspace() {
       );
       if (!related.length) return;
       setQueue((existing) => {
+        // Ignore a slow recommendation response if the listener has started another track.
+        if (existing[0]?.id !== track.id) return existing;
         const known = new Set(existing.map((item) => item.id));
         return [...existing, ...related.filter((item) => !known.has(item.id))];
       });
@@ -268,11 +274,9 @@ export default function MusicWorkspace() {
   }
 
   function toggleFavorite(track: Track) {
-    setFavorites((existing) => {
-      const liked = existing.includes(track.id);
-      showNotice(liked ? "Removed from favorites." : "Saved to favorites.");
-      return liked ? existing.filter((id) => id !== track.id) : [...existing, track.id];
-    });
+    const liked = favorites.includes(track.id);
+    setFavorites((existing) => liked ? existing.filter((id) => id !== track.id) : [...existing, track.id]);
+    showNotice(liked ? "Removed from favorites." : "Saved to favorites.");
   }
 
   function openAddToPlaylist(track: Track) {
