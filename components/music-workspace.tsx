@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { CSSProperties, FormEvent } from "react";
+import type { CSSProperties, FormEvent, ReactNode } from "react";
 import { demoTracks, type Track } from "@/lib/music";
 
 type View = "home" | "favorites" | "playlists";
@@ -16,7 +16,7 @@ function formatTime(value: number) {
 
 function Icon({ name }: { name: string }) {
   const common = { width: 18, height: 18, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, "aria-hidden": true as const };
-  const paths: Record<string, React.ReactNode> = {
+  const paths: Record<string, ReactNode> = {
     home: <><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9M9 20v-6h6v6"/></>,
     heart: <path d="M20.8 8.8c0 5.5-8.8 11-8.8 11s-8.8-5.5-8.8-11A4.8 4.8 0 0 1 12 6.5a4.8 4.8 0 0 1 8.8 2.3Z"/>,
     list: <><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></>,
@@ -39,10 +39,10 @@ function Icon({ name }: { name: string }) {
 
 function CoverArt({ track, large = false }: { track: Track; large?: boolean }) {
   const style: CSSProperties = track.coverUrl
-    ? { backgroundImage: \`linear-gradient(145deg, rgba(12,10,20,.12), rgba(12,10,20,.48)), url("\${track.coverUrl}")\` }
+    ? { backgroundImage: `linear-gradient(145deg, rgba(12,10,20,.12), rgba(12,10,20,.48)), url("${track.coverUrl}")` }
     : {};
   return (
-    <div className={\`album-art art-\${track.accent} \${large ? "album-art-large" : ""}\`} style={style} aria-label={\`Cover art for \${track.album}\`} role="img">
+    <div className={`album-art art-${track.accent} ${large ? "album-art-large" : ""}`} style={style} aria-label={`Cover art for ${track.album}`} role="img">
       {!track.coverUrl && <><span className="art-orbit art-orbit-one" /><span className="art-orbit art-orbit-two" /><span className="art-glyph">♪</span><span className="art-index">SH / 0{track.id.replace(/\D/g, "").slice(-1) || "1"}</span></>}
     </div>
   );
@@ -50,7 +50,9 @@ function CoverArt({ track, large = false }: { track: Track; large?: boolean }) {
 
 export default function MusicWorkspace() {
   const audioRef = useRef<HTMLAudioElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [tracks, setTracks] = useState<Track[]>(demoTracks);
+  const [libraryTracks, setLibraryTracks] = useState<Track[]>(demoTracks);
   const [view, setView] = useState<View>("home");
   const [query, setQuery] = useState("");
   const [genre, setGenre] = useState("All");
@@ -68,6 +70,7 @@ export default function MusicWorkspace() {
   const [volume, setVolume] = useState(0.82);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
+  const [storageReady, setStorageReady] = useState(false);
   const [activePlaylistId, setActivePlaylistId] = useState("");
   const [playlistDialog, setPlaylistDialog] = useState<"create" | "add" | null>(null);
   const [playlistName, setPlaylistName] = useState("");
@@ -87,29 +90,43 @@ export default function MusicWorkspace() {
         ));
       }
     } catch {
-      localStorage.removeItem("sangeethub:favorites");
-      localStorage.removeItem("sangeethub:playlists");
+      try {
+        localStorage.removeItem("sangeethub:favorites");
+        localStorage.removeItem("sangeethub:playlists");
+      } catch {
+        // Storage may be disabled by the browser; the in-memory app still works.
+      }
+    } finally {
+      setStorageReady(true);
     }
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("sangeethub:favorites", JSON.stringify(favorites));
-  }, [favorites]);
+    if (!storageReady) return;
+    try { localStorage.setItem("sangeethub:favorites", JSON.stringify(favorites)); } catch { /* Keep favorites in memory if storage is blocked. */ }
+  }, [favorites, storageReady]);
 
   useEffect(() => {
-    localStorage.setItem("sangeethub:playlists", JSON.stringify(playlists));
-  }, [playlists]);
+    if (!storageReady) return;
+    try { localStorage.setItem("sangeethub:playlists", JSON.stringify(playlists)); } catch { /* Keep playlists in memory if storage is blocked. */ }
+  }, [playlists, storageReady]);
 
   useEffect(() => {
     let cancelled = false;
     const timer = window.setTimeout(async () => {
       setSearchLoading(true);
       try {
-        const response = await fetch(\`/api/music/search?q=\${encodeURIComponent(query.trim())}\`, { cache: "no-store" });
+        const response = await fetch(`/api/music/search?q=${encodeURIComponent(query.trim())}`, { cache: "no-store" });
         const payload = await response.json() as { tracks?: Track[]; providerConfigured?: boolean; error?: string };
         if (!response.ok) throw new Error(payload.error || "Search could not be completed.");
         if (!cancelled) {
-          setTracks(Array.isArray(payload.tracks) ? payload.tracks : []);
+          const nextTracks = Array.isArray(payload.tracks) ? payload.tracks : [];
+          setTracks(nextTracks);
+          setLibraryTracks((existing) => {
+            const byId = new Map(existing.map((track) => [track.id, track]));
+            nextTracks.forEach((track) => byId.set(track.id, track));
+            return Array.from(byId.values());
+          });
           setProviderConfigured(Boolean(payload.providerConfigured));
           setApiError("");
         }
@@ -150,6 +167,21 @@ export default function MusicWorkspace() {
   }, [isPlaying, currentTrack?.id, currentTrack?.streamUrl, volume]);
 
   useEffect(() => {
+    function handleGlobalKeys(event: KeyboardEvent) {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        searchInputRef.current?.focus();
+      }
+      if (event.key === "Escape" && document.activeElement === searchInputRef.current) {
+        setQuery("");
+        searchInputRef.current?.blur();
+      }
+    }
+    window.addEventListener("keydown", handleGlobalKeys);
+    return () => window.removeEventListener("keydown", handleGlobalKeys);
+  }, []);
+
+  useEffect(() => {
     if (!toast) return;
     const timer = window.setTimeout(() => setToast(""), 2800);
     return () => window.clearTimeout(timer);
@@ -159,15 +191,15 @@ export default function MusicWorkspace() {
 
   const visibleTracks = useMemo(() => {
     let result = tracks;
-    if (view === "favorites") result = tracks.filter((track) => favorites.includes(track.id));
+    if (view === "favorites") result = libraryTracks.filter((track) => favorites.includes(track.id));
     if (view === "playlists" && activePlaylist) {
       result = activePlaylist.trackIds
-        .map((id) => tracks.find((track) => track.id === id))
+        .map((id) => libraryTracks.find((track) => track.id === id))
         .filter((track): track is Track => Boolean(track));
     }
     if (genre !== "All") result = result.filter((track) => track.genre.toLowerCase() === genre.toLowerCase());
     return result;
-  }, [tracks, view, favorites, activePlaylist, genre]);
+  }, [tracks, libraryTracks, view, favorites, activePlaylist, genre]);
 
   const genres = useMemo(() => ["All", ...Array.from(new Set(tracks.map((track) => track.genre).filter(Boolean)))], [tracks]);
 
@@ -177,7 +209,7 @@ export default function MusicWorkspace() {
 
   async function enqueueRelated(track: Track) {
     try {
-      const response = await fetch(\`/api/music/related?trackId=\${encodeURIComponent(track.id)}\`, { cache: "no-store" });
+      const response = await fetch(`/api/music/related?trackId=${encodeURIComponent(track.id)}`, { cache: "no-store" });
       if (!response.ok) return;
       const payload = await response.json() as { tracks?: Track[] };
       const related = (payload.tracks || []).filter((candidate) =>
@@ -185,6 +217,8 @@ export default function MusicWorkspace() {
       );
       if (!related.length) return;
       setQueue((existing) => {
+        // Ignore a slow recommendation response if the listener has started another track.
+        if (existing[0]?.id !== track.id) return existing;
         const known = new Set(existing.map((item) => item.id));
         return [...existing, ...related.filter((item) => !known.has(item.id))];
       });
@@ -203,6 +237,7 @@ export default function MusicWorkspace() {
     if (!track.streamUrl) {
       setIsPlaying(false);
       showNotice("This is demo catalogue data. Connect a provider that returns streamUrl or previewUrl to play audio.");
+      void enqueueRelated(track);
       return;
     }
 
@@ -212,7 +247,7 @@ export default function MusicWorkspace() {
 
   function addToQueue(track: Track) {
     setQueue((existing) => existing.some((item) => item.id === track.id) ? existing : [...existing, track]);
-    showNotice(\`Added “\${track.title}” to your queue.\`);
+    showNotice(`Added “${track.title}” to your queue.`);
   }
 
   function goToQueueIndex(index: number) {
@@ -256,11 +291,9 @@ export default function MusicWorkspace() {
   }
 
   function toggleFavorite(track: Track) {
-    setFavorites((existing) => {
-      const liked = existing.includes(track.id);
-      showNotice(liked ? "Removed from favorites." : "Saved to favorites.");
-      return liked ? existing.filter((id) => id !== track.id) : [...existing, track.id];
-    });
+    const liked = favorites.includes(track.id);
+    setFavorites((existing) => liked ? existing.filter((id) => id !== track.id) : [...existing, track.id]);
+    showNotice(liked ? "Removed from favorites." : "Saved to favorites.");
   }
 
   function openAddToPlaylist(track: Track) {
@@ -274,7 +307,7 @@ export default function MusicWorkspace() {
     const name = playlistName.trim();
     if (!name) return;
     const playlist: Playlist = {
-      id: \`playlist-\${Date.now()}\`,
+      id: `playlist-${Date.now()}`,
       name,
       trackIds: trackToAdd ? [trackToAdd.id] : [],
     };
@@ -284,7 +317,7 @@ export default function MusicWorkspace() {
     setPlaylistDialog(null);
     setActivePlaylistId(playlist.id);
     setView("playlists");
-    showNotice(\`Playlist “\${name}” created.\`);
+    showNotice(`Playlist “${name}” created.`);
   }
 
   function addTrackToPlaylist(event: FormEvent<HTMLFormElement>) {
@@ -357,6 +390,7 @@ export default function MusicWorkspace() {
         <label className="search-box">
           <Icon name="search" />
           <input
+            ref={searchInputRef}
             value={query}
             onChange={(event) => { setQuery(event.target.value); setView("home"); setActivePlaylistId(""); }}
             placeholder="Search songs, artists, or albums"
@@ -370,16 +404,16 @@ export default function MusicWorkspace() {
       </header>
 
       <div className="app-grid">
-        <aside className={\`sidebar \${mobileNavOpen ? "sidebar-open" : ""}\`}>
+        <aside className={`sidebar ${mobileNavOpen ? "sidebar-open" : ""}`}>
           <div className="side-label">MENU</div>
           <nav className="primary-nav" aria-label="Main navigation">
-            <button className={view === "home" ? "nav-link active" : "nav-link"} onClick={() => { setView("home"); setActivePlaylistId(""); setMobileNavOpen(false); }}>
+            <button className={view === "home" ? "nav-link active" : "nav-link"} onClick={() => { setView("home"); setActivePlaylistId(""); setQuery(""); setGenre("All"); setMobileNavOpen(false); }}>
               <Icon name="home" /> <span>Discover</span>
             </button>
-            <button className={view === "favorites" ? "nav-link active" : "nav-link"} onClick={() => { setView("favorites"); setActivePlaylistId(""); setMobileNavOpen(false); }}>
+            <button className={view === "favorites" ? "nav-link active" : "nav-link"} onClick={() => { setView("favorites"); setActivePlaylistId(""); setQuery(""); setGenre("All"); setMobileNavOpen(false); }}>
               <Icon name="heart" /> <span>Favorites</span><span className="nav-count">{favorites.length}</span>
             </button>
-            <button className={view === "playlists" ? "nav-link active" : "nav-link"} onClick={() => { setView("playlists"); setMobileNavOpen(false); }}>
+            <button className={view === "playlists" ? "nav-link active" : "nav-link"} onClick={() => { setView("playlists"); setActivePlaylistId(""); setQuery(""); setGenre("All"); setMobileNavOpen(false); }}>
               <Icon name="list" /> <span>Your playlists</span>
             </button>
           </nav>
@@ -412,7 +446,7 @@ export default function MusicWorkspace() {
             <div>
               <p className="eyebrow">YOUR MUSIC SPACE</p>
               <h1>{view === "favorites" ? "Your favorites." : view === "playlists" && activePlaylist ? activePlaylist.name : view === "playlists" ? "Your playlists." : "Find your next repeat."}</h1>
-              <p className="welcome-subtitle">{view === "favorites" ? "The songs you’ve saved for later." : view === "playlists" && activePlaylist ? \`\${activePlaylist.trackIds.length} songs in this playlist\` : view === "playlists" ? "Make a collection for every mood." : "Search a track, press play, and let the queue do the rest."}</p>
+              <p className="welcome-subtitle">{view === "favorites" ? "The songs you’ve saved for later." : view === "playlists" && activePlaylist ? `${activePlaylist.trackIds.length} songs in this playlist` : view === "playlists" ? "Make a collection for every mood." : "Search a track, press play, and let the queue do the rest."}</p>
             </div>
             <div className="welcome-actions">
               <span className="quiet-chip"><span className="live-pulse" /> LIGHTWEIGHT PLAYER</span>
@@ -439,7 +473,7 @@ export default function MusicWorkspace() {
                   <button className="create-button" onClick={() => setPlaylistDialog("create")}><Icon name="plus" /> Create playlist</button>
                 </div>
               ) : playlists.map((playlist, index) => (
-                <button key={playlist.id} className={\`playlist-card playlist-tone-\${index % 4}\`} onClick={() => setActivePlaylistId(playlist.id)}>
+                <button key={playlist.id} className={`playlist-card playlist-tone-${index % 4}`} onClick={() => setActivePlaylistId(playlist.id)}>
                   <span className="playlist-card-icon"><Icon name="music" /></span>
                   <span className="playlist-card-title">{playlist.name}</span>
                   <span className="playlist-card-meta">{playlist.trackIds.length} songs</span>
@@ -450,8 +484,8 @@ export default function MusicWorkspace() {
           ) : (
             <section className="track-section">
               <div className="section-heading">
-                <div><p className="eyebrow">{view === "favorites" ? "SAVED BY YOU" : view === "playlists" ? "YOUR MIX" : query ? "SEARCH RESULTS" : "PICKED FOR YOU"}</p><h2>{query ? \`Results for “\${query}”\` : view === "favorites" ? "Liked songs" : activePlaylist ? "Playlist tracks" : "Discover music"}</h2></div>
-                <span className="result-count">{searchLoading ? "Searching…" : \`\${visibleTracks.length} tracks\`}</span>
+                <div><p className="eyebrow">{view === "favorites" ? "SAVED BY YOU" : view === "playlists" ? "YOUR MIX" : query ? "SEARCH RESULTS" : "PICKED FOR YOU"}</p><h2>{query ? `Results for “${query}”` : view === "favorites" ? "Liked songs" : activePlaylist ? "Playlist tracks" : "Discover music"}</h2></div>
+                <span className="result-count">{searchLoading ? "Searching…" : `${visibleTracks.length} tracks`}</span>
               </div>
 
               {searchLoading ? <div className="loading-line"><span /></div> : visibleTracks.length === 0 ? (
@@ -466,7 +500,7 @@ export default function MusicWorkspace() {
                     <article className={currentTrack?.id === track.id ? "track-card playing-card" : "track-card"} key={track.id}>
                       <div className="track-art-wrap">
                         <CoverArt track={track} />
-                        <button className="cover-play-button" onClick={() => playTrack(track)} aria-label={\`Play \${track.title}\`}><Icon name="play" /></button>
+                        <button className="cover-play-button" onClick={() => playTrack(track)} aria-label={`Play ${track.title}`}><Icon name="play" /></button>
                         <span className="track-number">{String(index + 1).padStart(2, "0")}</span>
                       </div>
                       <div className="track-card-body">
@@ -474,8 +508,8 @@ export default function MusicWorkspace() {
                         <div className="track-card-meta"><span>{track.album}</span><span>{track.durationSeconds ? formatTime(track.durationSeconds) : "—"}</span></div>
                         <div className="track-card-actions">
                           <button className={favorites.includes(track.id) ? "card-icon-button liked" : "card-icon-button"} onClick={() => toggleFavorite(track)} aria-label={favorites.includes(track.id) ? "Remove from favorites" : "Add to favorites"}><Icon name="heart" /></button>
-                          <button className="card-icon-button" onClick={() => openAddToPlaylist(track)} aria-label={\`Add \${track.title} to a playlist\`}><Icon name="plus" /></button>
-                          <button className="card-icon-button" onClick={() => addToQueue(track)} aria-label={\`Add \${track.title} to queue\`}><Icon name="queue" /></button>
+                          <button className="card-icon-button" onClick={() => openAddToPlaylist(track)} aria-label={`Add ${track.title} to a playlist`}><Icon name="plus" /></button>
+                          <button className="card-icon-button" onClick={() => addToQueue(track)} aria-label={`Add ${track.title} to queue`}><Icon name="queue" /></button>
                         </div>
                       </div>
                     </article>
@@ -494,7 +528,7 @@ export default function MusicWorkspace() {
           </div>}
           <div className="queue-list">
             {queue.length === 0 ? <div className="queue-empty"><Icon name="queue" /><p>Your queue is empty.</p><small>Play a song and similar tracks will be added automatically.</small></div> : queue.map((track, index) => (
-              <button className={index === queueIndex ? "queue-row queue-row-current" : "queue-row"} key={\`\${track.id}-\${index}\`} onClick={() => goToQueueIndex(index)}>
+              <button className={index === queueIndex ? "queue-row queue-row-current" : "queue-row"} key={`${track.id}-${index}`} onClick={() => goToQueueIndex(index)}>
                 <CoverArt track={track} />
                 <span className="queue-row-copy"><strong>{track.title}</strong><small>{track.artist}</small></span>
                 {index === queueIndex ? <span className="queue-playing-dot">●</span> : <span className="queue-row-time">{formatTime(track.durationSeconds)}</span>}
@@ -520,10 +554,10 @@ export default function MusicWorkspace() {
             <button className="transport-button" onClick={playNext} aria-label="Next track" disabled={!currentTrack}><Icon name="next" /></button>
             <button className={repeat ? "transport-button active" : "transport-button"} onClick={() => setRepeat((value) => !value)} aria-label="Toggle repeat"><Icon name="repeat" /></button>
           </div>
-          <div className="progress-row"><span>{formatTime(currentTime)}</span><input aria-label="Seek through track" type="range" min="0" max={Math.max(duration, 1)} step="0.1" value={Math.min(currentTime, Math.max(duration, 1))} onChange={(event) => { const value = Number(event.target.value); if (audioRef.current) audioRef.current.currentTime = value; setCurrentTime(value); }} style={{ "--progress": \`\${progress}%\` } as CSSProperties} /><span>{formatTime(duration)}</span></div>
+          <div className="progress-row"><span>{formatTime(currentTime)}</span><input aria-label="Seek through track" type="range" min="0" max={Math.max(duration, 1)} step="0.1" value={Math.min(currentTime, Math.max(duration, 1))} onChange={(event) => { const value = Number(event.target.value); if (audioRef.current) audioRef.current.currentTime = value; setCurrentTime(value); }} style={{ "--progress": `${progress}%` } as CSSProperties} /><span>{formatTime(duration)}</span></div>
         </div>
 
-        <div className="player-extra"><span className="player-mode">{currentTrack?.streamUrl ? "BROWSER AUDIO" : "READY"} </span><Icon name="volume" /><input aria-label="Volume" className="volume-range" type="range" min="0" max="1" step="0.01" value={volume} onChange={(event) => setVolume(Number(event.target.value))} style={{ "--progress": \`\${volume * 100}%\` } as CSSProperties} /></div>
+        <div className="player-extra"><span className="player-mode">{currentTrack?.streamUrl ? "BROWSER AUDIO" : "READY"} </span><Icon name="volume" /><input aria-label="Volume" className="volume-range" type="range" min="0" max="1" step="0.01" value={volume} onChange={(event) => setVolume(Number(event.target.value))} style={{ "--progress": `${volume * 100}%` } as CSSProperties} /></div>
       </footer>
 
       {playlistDialog && (
