@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { CSSProperties, FormEvent } from "react";
+import type { CSSProperties, FormEvent, ReactNode } from "react";
 import { demoTracks, type Track } from "@/lib/music";
 
 type View = "home" | "favorites" | "playlists";
@@ -16,7 +16,7 @@ function formatTime(value: number) {
 
 function Icon({ name }: { name: string }) {
   const common = { width: 18, height: 18, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, "aria-hidden": true as const };
-  const paths: Record<string, React.ReactNode> = {
+  const paths: Record<string, ReactNode> = {
     home: <><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9M9 20v-6h6v6"/></>,
     heart: <path d="M20.8 8.8c0 5.5-8.8 11-8.8 11s-8.8-5.5-8.8-11A4.8 4.8 0 0 1 12 6.5a4.8 4.8 0 0 1 8.8 2.3Z"/>,
     list: <><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></>,
@@ -51,6 +51,7 @@ function CoverArt({ track, large = false }: { track: Track; large?: boolean }) {
 export default function MusicWorkspace() {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [tracks, setTracks] = useState<Track[]>(demoTracks);
+  const [libraryTracks, setLibraryTracks] = useState<Track[]>(demoTracks);
   const [view, setView] = useState<View>("home");
   const [query, setQuery] = useState("");
   const [genre, setGenre] = useState("All");
@@ -68,6 +69,7 @@ export default function MusicWorkspace() {
   const [volume, setVolume] = useState(0.82);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
+  const [storageReady, setStorageReady] = useState(false);
   const [activePlaylistId, setActivePlaylistId] = useState("");
   const [playlistDialog, setPlaylistDialog] = useState<"create" | "add" | null>(null);
   const [playlistName, setPlaylistName] = useState("");
@@ -89,16 +91,20 @@ export default function MusicWorkspace() {
     } catch {
       localStorage.removeItem("sangeethub:favorites");
       localStorage.removeItem("sangeethub:playlists");
+    } finally {
+      setStorageReady(true);
     }
   }, []);
 
   useEffect(() => {
+    if (!storageReady) return;
     localStorage.setItem("sangeethub:favorites", JSON.stringify(favorites));
-  }, [favorites]);
+  }, [favorites, storageReady]);
 
   useEffect(() => {
+    if (!storageReady) return;
     localStorage.setItem("sangeethub:playlists", JSON.stringify(playlists));
-  }, [playlists]);
+  }, [playlists, storageReady]);
 
   useEffect(() => {
     let cancelled = false;
@@ -109,7 +115,13 @@ export default function MusicWorkspace() {
         const payload = await response.json() as { tracks?: Track[]; providerConfigured?: boolean; error?: string };
         if (!response.ok) throw new Error(payload.error || "Search could not be completed.");
         if (!cancelled) {
-          setTracks(Array.isArray(payload.tracks) ? payload.tracks : []);
+          const nextTracks = Array.isArray(payload.tracks) ? payload.tracks : [];
+          setTracks(nextTracks);
+          setLibraryTracks((existing) => {
+            const byId = new Map(existing.map((track) => [track.id, track]));
+            nextTracks.forEach((track) => byId.set(track.id, track));
+            return Array.from(byId.values());
+          });
           setProviderConfigured(Boolean(payload.providerConfigured));
           setApiError("");
         }
@@ -159,15 +171,15 @@ export default function MusicWorkspace() {
 
   const visibleTracks = useMemo(() => {
     let result = tracks;
-    if (view === "favorites") result = tracks.filter((track) => favorites.includes(track.id));
+    if (view === "favorites") result = libraryTracks.filter((track) => favorites.includes(track.id));
     if (view === "playlists" && activePlaylist) {
       result = activePlaylist.trackIds
-        .map((id) => tracks.find((track) => track.id === id))
+        .map((id) => libraryTracks.find((track) => track.id === id))
         .filter((track): track is Track => Boolean(track));
     }
     if (genre !== "All") result = result.filter((track) => track.genre.toLowerCase() === genre.toLowerCase());
     return result;
-  }, [tracks, view, favorites, activePlaylist, genre]);
+  }, [tracks, libraryTracks, view, favorites, activePlaylist, genre]);
 
   const genres = useMemo(() => ["All", ...Array.from(new Set(tracks.map((track) => track.genre).filter(Boolean)))], [tracks]);
 
@@ -373,13 +385,13 @@ export default function MusicWorkspace() {
         <aside className={\`sidebar \${mobileNavOpen ? "sidebar-open" : ""}\`}>
           <div className="side-label">MENU</div>
           <nav className="primary-nav" aria-label="Main navigation">
-            <button className={view === "home" ? "nav-link active" : "nav-link"} onClick={() => { setView("home"); setActivePlaylistId(""); setMobileNavOpen(false); }}>
+            <button className={view === "home" ? "nav-link active" : "nav-link"} onClick={() => { setView("home"); setActivePlaylistId(""); setQuery(""); setGenre("All"); setMobileNavOpen(false); }}>
               <Icon name="home" /> <span>Discover</span>
             </button>
-            <button className={view === "favorites" ? "nav-link active" : "nav-link"} onClick={() => { setView("favorites"); setActivePlaylistId(""); setMobileNavOpen(false); }}>
+            <button className={view === "favorites" ? "nav-link active" : "nav-link"} onClick={() => { setView("favorites"); setActivePlaylistId(""); setQuery(""); setGenre("All"); setMobileNavOpen(false); }}>
               <Icon name="heart" /> <span>Favorites</span><span className="nav-count">{favorites.length}</span>
             </button>
-            <button className={view === "playlists" ? "nav-link active" : "nav-link"} onClick={() => { setView("playlists"); setMobileNavOpen(false); }}>
+            <button className={view === "playlists" ? "nav-link active" : "nav-link"} onClick={() => { setView("playlists"); setQuery(""); setGenre("All"); setMobileNavOpen(false); }}>
               <Icon name="list" /> <span>Your playlists</span>
             </button>
           </nav>
