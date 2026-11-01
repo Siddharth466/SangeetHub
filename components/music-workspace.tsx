@@ -237,6 +237,7 @@ export default function MusicWorkspace() {
     if (!track.streamUrl) {
       setIsPlaying(false);
       showNotice("This is demo catalogue data. Connect a provider that returns streamUrl or previewUrl to play audio.");
+      void enqueueRelated(track);
       return;
     }
 
@@ -412,7 +413,7 @@ export default function MusicWorkspace() {
             <button className={view === "favorites" ? "nav-link active" : "nav-link"} onClick={() => { setView("favorites"); setActivePlaylistId(""); setQuery(""); setGenre("All"); setMobileNavOpen(false); }}>
               <Icon name="heart" /> <span>Favorites</span><span className="nav-count">{favorites.length}</span>
             </button>
-            <button className={view === "playlists" ? "nav-link active" : "nav-link"} onClick={() => { setView("playlists"); setQuery(""); setGenre("All"); setMobileNavOpen(false); }}>
+            <button className={view === "playlists" ? "nav-link active" : "nav-link"} onClick={() => { setView("playlists"); setActivePlaylistId(""); setQuery(""); setGenre("All"); setMobileNavOpen(false); }}>
               <Icon name="list" /> <span>Your playlists</span>
             </button>
           </nav>
