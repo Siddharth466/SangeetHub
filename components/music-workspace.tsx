@@ -1,11 +1,101 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import type { CSSProperties, FormEvent, ReactNode } from "react";
 import { demoTracks, type Track } from "@/lib/music";
 
 type View = "home" | "favorites" | "playlists";
 type Playlist = { id: string; name: string; trackIds: string[] };
+
+type StoredArrayUpdate<T> = T[] | ((current: T[]) => T[]);
+const LOCAL_STORAGE_EVENT = "sangeethub:local-storage-change";
+const EMPTY_ARRAY_JSON = "[]";
+const memorySnapshots = new Map<string, string>();
+
+function isString(value: unknown): value is string {
+  return typeof value === "string";
+}
+
+function isPlaylist(value: unknown): value is Playlist {
+  const item = value as Partial<Playlist> | null;
+  return Boolean(
+    item &&
+    typeof item.id === "string" &&
+    typeof item.name === "string" &&
+    Array.isArray(item.trackIds) &&
+    item.trackIds.every((id) => typeof id === "string"),
+  );
+}
+
+function readStorageSnapshot(key: string): string {
+  try {
+    const saved = window.localStorage.getItem(key);
+    if (saved !== null) {
+      memorySnapshots.set(key, saved);
+      return saved;
+    }
+  } catch {
+    // Browser storage can be disabled; fall back to the in-memory store.
+  }
+  return memorySnapshots.get(key) ?? EMPTY_ARRAY_JSON;
+}
+
+function subscribeToStorage(key: string, callback: () => void) {
+  const onStorage = (event: StorageEvent) => {
+    if (event.key === key || event.key === null) callback();
+  };
+  const onLocalChange = () => callback();
+  window.addEventListener("storage", onStorage);
+  window.addEventListener(LOCAL_STORAGE_EVENT, onLocalChange);
+  return () => {
+    window.removeEventListener("storage", onStorage);
+    window.removeEventListener(LOCAL_STORAGE_EVENT, onLocalChange);
+  };
+}
+
+function useStoredArray<T>(
+  key: string,
+  isValid: (value: unknown) => value is T,
+): [T[], (update: StoredArrayUpdate<T>) => void] {
+  const subscribe = useCallback(
+    (callback: () => void) => subscribeToStorage(key, callback),
+    [key],
+  );
+  const getSnapshot = useCallback(() => readStorageSnapshot(key), [key]);
+  const getServerSnapshot = useCallback(() => EMPTY_ARRAY_JSON, []);
+  const snapshot = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+
+  const value = useMemo(() => {
+    try {
+      const parsed: unknown = JSON.parse(snapshot);
+      return Array.isArray(parsed) ? parsed.filter(isValid) : [];
+    } catch {
+      return [];
+    }
+  }, [snapshot, isValid]);
+
+  const setValue = useCallback((update: StoredArrayUpdate<T>) => {
+    let current: T[] = [];
+    try {
+      const parsed: unknown = JSON.parse(readStorageSnapshot(key));
+      current = Array.isArray(parsed) ? parsed.filter(isValid) : [];
+    } catch {
+      current = [];
+    }
+
+    const next = typeof update === "function" ? update(current) : update;
+    const serialized = JSON.stringify(next);
+    memorySnapshots.set(key, serialized);
+    try {
+      window.localStorage.setItem(key, serialized);
+    } catch {
+      // Keep the updated value in memory when persistent storage is unavailable.
+    }
+    window.dispatchEvent(new Event(LOCAL_STORAGE_EVENT));
+  }, [key, isValid]);
+
+  return [value, setValue];
+}
 
 function formatTime(value: number) {
   if (!Number.isFinite(value) || value < 0) return "0:00";
@@ -68,9 +158,8 @@ export default function MusicWorkspace() {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(0.82);
-  const [favorites, setFavorites] = useState<string[]>([]);
-  const [playlists, setPlaylists] = useState<Playlist[]>([]);
-  const [storageReady, setStorageReady] = useState(false);
+  const [favorites, setFavorites] = useStoredArray<string>("sangeethub:favorites", isString);
+  const [playlists, setPlaylists] = useStoredArray<Playlist>("sangeethub:playlists", isPlaylist);
   const [activePlaylistId, setActivePlaylistId] = useState("");
   const [playlistDialog, setPlaylistDialog] = useState<"create" | "add" | null>(null);
   const [playlistName, setPlaylistName] = useState("");
@@ -78,38 +167,6 @@ export default function MusicWorkspace() {
   const [trackToAdd, setTrackToAdd] = useState<Track | null>(null);
   const [toast, setToast] = useState("");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-
-  useEffect(() => {
-    try {
-      const savedFavorites = JSON.parse(localStorage.getItem("sangeethub:favorites") || "[]");
-      const savedPlaylists = JSON.parse(localStorage.getItem("sangeethub:playlists") || "[]");
-      if (Array.isArray(savedFavorites)) setFavorites(savedFavorites.filter((id): id is string => typeof id === "string"));
-      if (Array.isArray(savedPlaylists)) {
-        setPlaylists(savedPlaylists.filter((item): item is Playlist =>
-          item && typeof item.id === "string" && typeof item.name === "string" && Array.isArray(item.trackIds),
-        ));
-      }
-    } catch {
-      try {
-        localStorage.removeItem("sangeethub:favorites");
-        localStorage.removeItem("sangeethub:playlists");
-      } catch {
-        // Storage may be disabled by the browser; the in-memory app still works.
-      }
-    } finally {
-      setStorageReady(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!storageReady) return;
-    try { localStorage.setItem("sangeethub:favorites", JSON.stringify(favorites)); } catch { /* Keep favorites in memory if storage is blocked. */ }
-  }, [favorites, storageReady]);
-
-  useEffect(() => {
-    if (!storageReady) return;
-    try { localStorage.setItem("sangeethub:playlists", JSON.stringify(playlists)); } catch { /* Keep playlists in memory if storage is blocked. */ }
-  }, [playlists, storageReady]);
 
   useEffect(() => {
     let cancelled = false;
@@ -163,7 +220,6 @@ export default function MusicWorkspace() {
       audio.pause();
     }
     // Track changes and play/pause changes should both update the audio element.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPlaying, currentTrack?.id, currentTrack?.streamUrl, volume]);
 
   useEffect(() => {
